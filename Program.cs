@@ -19,6 +19,8 @@ namespace GitVersioner
             public int Revision;
             public int Commit;
             public string ShortHash;
+            public string LongHash;
+            public string Branch;
         }
 
         static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
@@ -122,7 +124,7 @@ namespace GitVersioner
             var bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
             File.Copy(sFile, bkp, true);
-            var git = ExecGit(Path.GetDirectoryName(sFile));
+            var git = GetVersionInfo(Path.GetDirectoryName(sFile));
             // zapis
             using (var infile = new StreamReader(bkp, Encoding.Default, true))
             {
@@ -141,23 +143,9 @@ namespace GitVersioner
             return true;
         }
 
-        private static GitResult ExecGit(string workDir)
+        private static GitResult GetVersionInfo(string workDir)
         {
-            var psi = new ProcessStartInfo(FindGitBinary(), "describe --long --tags --always");
-            psi.WorkingDirectory = workDir;
-            psi.RedirectStandardOutput = true;
-            psi.UseShellExecute = false;
-            var p = Process.Start(psi);
-            var lines = "";
-            while (!p.StandardOutput.EndOfStream)
-            {
-                lines += p.StandardOutput.ReadLine() + "\n";
-            }
-            if (!p.WaitForExit(1000))
-            {
-                p.Kill();
-            }
-
+            var lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
             r.MinorVersion = 0;
@@ -222,6 +210,30 @@ namespace GitVersioner
                 r.ShortHash = lines;
             }
             r.ShortHash = r.ShortHash.Trim();
+            // 
+            r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
+            r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
+            return r;
+        }
+
+        private static string ExecGit(string workDir, string parameters)
+        {
+            var psi = new ProcessStartInfo(FindGitBinary(), parameters)
+            {
+                WorkingDirectory = workDir,
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            };
+            var p = Process.Start(psi);
+            var r = string.Empty;
+            while (p != null && !p.StandardOutput.EndOfStream)
+            {
+                r += p.StandardOutput.ReadLine() + "\n";
+            }
+            if (p != null && !p.WaitForExit(1000))
+            {
+                p.Kill();
+            }
             return r;
         }
 
@@ -232,7 +244,14 @@ namespace GitVersioner
             r = r.Replace("$Revision$", gr.Revision.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$Commit$", gr.Commit.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$ShortHash$", gr.ShortHash);
+            r = r.Replace("$LongHash$", gr.LongHash);
+            r = r.Replace("$Branch$", gr.Branch);
             return r;
+        }
+
+        private static void RestoreBackup(string inFile)
+        {
+            
         }
 
         static void Main(string[] args)
@@ -245,7 +264,8 @@ namespace GitVersioner
                     WriteInfo(args[1]);
                     break;
                 case "r":
-                    return;
+                    RestoreBackup(args[1]);
+                    break;
                 default:
                     return;
             }
