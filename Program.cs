@@ -1,29 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.Security.Policy;
 using System.Text;
-using System.Text.RegularExpressions;
 using Microsoft.Win32;
 
 namespace GitVersioner
 {
-    static class Program
+    internal static class Program
     {
-        private struct GitResult
-        {
-            public int MajorVersion;
-            public int MinorVersion;
-            public int Revision;
-            public int Commit;
-            public string ShortHash;
-            public string LongHash;
-            public string Branch;
-        }
+        private static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix
+            ? "git"
+            : "git.exe";
 
-        static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix ? "git" : "git.exe";
+        private static bool Is64Bit
+        {
+            get
+            {
+                return IntPtr.Size == 8 ||
+                       !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
+            }
+        }
 
         private static string ProgramFilesX86()
         {
@@ -34,15 +31,6 @@ namespace GitVersioner
             return Environment.GetEnvironmentVariable("ProgramFiles");
         }
 
-        private static bool Is64Bit
-        {
-            get
-            {
-                return IntPtr.Size == 8 ||
-                    !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
-            }
-        }
-
         private static string FindGitBinary()
         {
             string git = null;
@@ -50,11 +38,11 @@ namespace GitVersioner
 
             // Try the PATH environment variable
 
-            var pathEnv = Environment.GetEnvironmentVariable("PATH");
+            string pathEnv = Environment.GetEnvironmentVariable("PATH");
             if (pathEnv != null)
-                foreach (var dir in pathEnv.Split(Path.PathSeparator))
+                foreach (string dir in pathEnv.Split(Path.PathSeparator))
                 {
-                    var sdir = dir;
+                    string sdir = dir;
                     if (sdir.StartsWith("\"") && sdir.EndsWith("\""))
                     {
                         // Strip quotes (no Path.PathSeparator supported in quoted directories though)
@@ -64,7 +52,7 @@ namespace GitVersioner
                     if (File.Exists(git)) break;
                 }
             if (!File.Exists(git)) git = null;
-            
+
 
             // Read registry uninstaller key
             if (git == null)
@@ -75,7 +63,7 @@ namespace GitVersioner
                     object loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
-                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
+                        git = Path.Combine((string) loc, Path.Combine("bin", GitExeName));
                         if (!File.Exists(git)) git = null;
                     }
                 }
@@ -84,13 +72,15 @@ namespace GitVersioner
             // Try 64-bit registry key
             if (git == null && Is64Bit)
             {
-                key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
+                key =
+                    Registry.LocalMachine.OpenSubKey(
+                        @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
                 if (key != null)
                 {
                     object loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
-                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
+                        git = Path.Combine((string) loc, Path.Combine("bin", GitExeName));
                         if (!File.Exists(git)) git = null;
                     }
                 }
@@ -99,7 +89,10 @@ namespace GitVersioner
             // Search program files directory
             if (git == null)
             {
-                foreach (string dir in Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "git*"))
+                foreach (
+                    string dir in
+                        Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                            "git*"))
                 {
                     git = Path.Combine(dir, Path.Combine("bin", GitExeName));
                     if (!File.Exists(git)) git = null;
@@ -108,7 +101,7 @@ namespace GitVersioner
 
             // Try 32-bit program files directory
             if (git != null || !Is64Bit) return git;
-            foreach (var dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
+            foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
             {
                 git = Path.Combine(dir, Path.Combine("bin", GitExeName));
                 if (!File.Exists(git)) git = null;
@@ -121,23 +114,28 @@ namespace GitVersioner
         private static bool WriteInfo(string sFile, bool backup = true)
         {
             if (!File.Exists(sFile)) return false;
-            var bkp = sFile + ".gwbackup";
+            string bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
             File.Copy(sFile, bkp, true);
-            var git = GetVersionInfo(Path.GetDirectoryName(sFile));
+            GitResult git = GetVersionInfo(Path.GetDirectoryName(sFile));
             // zapis
             using (var infile = new StreamReader(bkp, Encoding.Default, true))
             {
-                var append = true;
+                bool append = true;
                 using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
                 {
                     while (!infile.EndOfStream)
                     {
-                        var l = infile.ReadLine();
+                        string l = infile.ReadLine();
                         if (l != null && l.Contains("AssemblyInformationalVersion")) append = false;
                         outfile.WriteLine(DoReplace(l, git));
                     }
-                    if (append) outfile.WriteLine("[assembly: AssemblyInformationalVersion(\"1.0.0.0\")]");
+                    // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
+                    if (append)
+                        outfile.WriteLine(
+                            DoReplace(
+                                "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
+                                git));
                 }
             }
             return true;
@@ -145,7 +143,7 @@ namespace GitVersioner
 
         private static GitResult GetVersionInfo(string workDir)
         {
-            var lines = ExecGit(workDir, "describe --long --tags --always");
+            string lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
             r.MinorVersion = 0;
@@ -154,11 +152,11 @@ namespace GitVersioner
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
             //lines = "g0a52e4b";
-            var part1 = lines.Split('-');
+            string[] part1 = lines.Split('-');
             if (part1.Length >= 3)
             {
                 // druhou cast rozdelit po teckach
-                var part2 = part1[0].Split('.');
+                string[] part2 = part1[0].Split('.');
                 if (part2.Length > 1)
                 {
                     // delsi nez 1: mame major a minor verzi
@@ -224,8 +222,8 @@ namespace GitVersioner
                 RedirectStandardOutput = true,
                 UseShellExecute = false
             };
-            var p = Process.Start(psi);
-            var r = string.Empty;
+            Process p = Process.Start(psi);
+            string r = string.Empty;
             while (p != null && !p.StandardOutput.EndOfStream)
             {
                 r += p.StandardOutput.ReadLine() + "\n";
@@ -239,7 +237,7 @@ namespace GitVersioner
 
         private static string DoReplace(string inString, GitResult gr)
         {
-            var r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
+            string r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$MinorVersion$", gr.MinorVersion.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$Revision$", gr.Revision.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$Commit$", gr.Commit.ToString(CultureInfo.InvariantCulture));
@@ -249,12 +247,21 @@ namespace GitVersioner
             return r;
         }
 
-        private static void RestoreBackup(string inFile)
+        private static void RestoreBackup(string sFile)
         {
-            
+            string bkp = sFile + ".gwbackup";
+            if (!File.Exists(bkp)) return;
+            try
+            {
+                File.Copy(bkp, sFile, true);
+                File.Delete(bkp);
+            }
+            catch
+            {
+            }
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             if (string.IsNullOrEmpty(FindGitBinary())) return;
             if (args.Length < 2) return;
@@ -269,6 +276,17 @@ namespace GitVersioner
                 default:
                     return;
             }
+        }
+
+        private struct GitResult
+        {
+            public string Branch;
+            public int Commit;
+            public string LongHash;
+            public int MajorVersion;
+            public int MinorVersion;
+            public int Revision;
+            public string ShortHash;
         }
     }
 }
