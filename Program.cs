@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Security.Policy;
 using System.Text;
@@ -226,7 +227,12 @@ namespace GitVersioner
 
         private static string DoReplace(string inString, GitResult gr)
         {
-            return inString;
+            var r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
+            r = r.Replace("$MinorVersion$", gr.MinorVersion.ToString(CultureInfo.InvariantCulture));
+            r = r.Replace("$Revision$", gr.Revision.ToString(CultureInfo.InvariantCulture));
+            r = r.Replace("$Commit$", gr.Commit.ToString(CultureInfo.InvariantCulture));
+            r = r.Replace("$ShortHash$", gr.ShortHash);
+            return r;
         }
 
         static void Main(string[] args)
