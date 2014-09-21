@@ -122,7 +122,7 @@ namespace GitVersioner
             string bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
             if (backup) File.Copy(sFile, bkp, true);
-            GitResult git = GetVersionInfo(Path.GetDirectoryName(sFile));
+            GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
             // zapis
             using (var infile = new StreamReader(bkp, Encoding.Default, true))
             {
@@ -194,7 +194,13 @@ namespace GitVersioner
                 // mame jen major verzi
                 try
                 {
-                    r.MajorVersion = Convert.ToInt32(part2[0]);
+                    string s = part2[0].ToLower();
+                    // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
+                    if (s[0] == 'v')
+                    {
+                        s = s.Remove(0, 1);
+                    }
+                    r.MajorVersion = Convert.ToInt32(s);
                 }
                 catch
                 {
@@ -322,7 +328,7 @@ namespace GitVersioner
 
         private static void ShowHelp()
         {
-            string exename = Path.GetFileName(Assembly.GetExecutingAssembly().ToString());
+            string exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
             Console.WriteLine();
             Console.WriteLine("Usage: {0} [parameter] [file]", exename);
             Console.WriteLine("Supported parameters:");
