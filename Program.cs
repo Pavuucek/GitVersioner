@@ -121,32 +121,39 @@ namespace GitVersioner
             }
             string bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
-            if (backup) File.Copy(sFile, bkp, true);
-            GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
-            // zapis
-            using (var infile = new StreamReader(bkp, Encoding.Default, true))
+            try
             {
-                Console.WriteLine("Reading {0}...", sFile);
-                bool append = true;
-                using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
+                // zapis
+                if (backup) File.Copy(sFile, bkp, true);
+                GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
+                using (var infile = new StreamReader(bkp, Encoding.Default, true))
                 {
-                    Console.WriteLine("Writing {0}", sFile);
-                    while (!infile.EndOfStream)
+                    Console.WriteLine("Reading {0}...", sFile);
+                    bool append = true;
+                    using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
                     {
-                        string l = infile.ReadLine();
-                        if (l != null && l.Contains("AssemblyInformationalVersion")) append = false;
-                        outfile.WriteLine(DoReplace(l, git));
-                    }
-                    // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
-                    if (append)
-                    {
-                        Console.WriteLine("Appending AssemblyInformationalVersion...");
-                        outfile.WriteLine(
-                            DoReplace(
-                                "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
-                                git));
+                        Console.WriteLine("Writing {0}", sFile);
+                        while (!infile.EndOfStream)
+                        {
+                            string l = infile.ReadLine();
+                            if (l != null && l.Contains("AssemblyInformationalVersion")) append = false;
+                            outfile.WriteLine(DoReplace(l, git));
+                        }
+                        // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
+                        if (append)
+                        {
+                            Console.WriteLine("Appending AssemblyInformationalVersion...");
+                            outfile.WriteLine(
+                                DoReplace(
+                                    "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
+                                    git));
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
             }
         }
 

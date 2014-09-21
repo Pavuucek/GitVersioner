@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // Obecné informace o sestavení jsou řízeny prostřednictvím následující 
 // sadu atributů. Změnou hodnot těchto atributů se upraví informace
 // přidružené k sestavení.
-[assembly: AssemblyTitle("GitVersioner")]
+[assembly: AssemblyTitle("ArachNGIN GitVersioner")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("X-C Soft ltd.")]
 [assembly: AssemblyProduct("GitVersioner")]
-[assembly: AssemblyCopyright("Copyright ©  2014")]
+[assembly: AssemblyCopyright("Copyright ©  X-C Soft ltd. 2014")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
