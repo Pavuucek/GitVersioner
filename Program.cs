@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.Win32;
 
@@ -111,19 +112,25 @@ namespace GitVersioner
         }
 
 
-        private static bool WriteInfo(string sFile, bool backup = true)
+        private static void WriteInfo(string sFile, bool backup = true)
         {
-            if (!File.Exists(sFile)) return false;
+            if (!File.Exists(sFile))
+            {
+                Console.WriteLine("Unable to find file {0}", sFile);
+                return;
+            }
             string bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
-            File.Copy(sFile, bkp, true);
+            if (backup) File.Copy(sFile, bkp, true);
             GitResult git = GetVersionInfo(Path.GetDirectoryName(sFile));
             // zapis
             using (var infile = new StreamReader(bkp, Encoding.Default, true))
             {
+                Console.WriteLine("Reading {0}...", sFile);
                 bool append = true;
                 using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
                 {
+                    Console.WriteLine("Writing {0}", sFile);
                     while (!infile.EndOfStream)
                     {
                         string l = infile.ReadLine();
@@ -132,17 +139,20 @@ namespace GitVersioner
                     }
                     // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
                     if (append)
+                    {
+                        Console.WriteLine("Appending AssemblyInformationalVersion...");
                         outfile.WriteLine(
                             DoReplace(
                                 "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
                                 git));
+                    }
                 }
             }
-            return true;
         }
 
         private static GitResult GetVersionInfo(string workDir)
         {
+            Console.WriteLine("Getting version info for {0}", workDir);
             string lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
@@ -211,7 +221,22 @@ namespace GitVersioner
             // 
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
+            Console.WriteLine("Version info: {0}", GitResultToString(r));
+            if (string.IsNullOrEmpty(lines))
+            {
+                Console.WriteLine("Possible error, git output follows:\n {0}", lines);
+            }
             return r;
+        }
+
+        private static string GitResultToString(GitResult gr)
+        {
+            string s = gr.MajorVersion + ".";
+            s += gr.MinorVersion + ".";
+            s += gr.Revision + "-";
+            s += gr.Commit + "-";
+            s += gr.ShortHash;
+            return s;
         }
 
         private static string ExecGit(string workDir, string parameters)
@@ -256,15 +281,26 @@ namespace GitVersioner
                 File.Copy(bkp, sFile, true);
                 File.Delete(bkp);
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine("Unable to restore backup {0}", bkp);
+                Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
             }
         }
 
         private static void Main(string[] args)
         {
-            if (string.IsNullOrEmpty(FindGitBinary())) return;
-            if (args.Length < 2) return;
+            Console.WriteLine("GitVersioner");
+            if (string.IsNullOrEmpty(FindGitBinary()))
+            {
+                NoGit();
+                return;
+            }
+            if (args.Length < 2)
+            {
+                ShowHelp();
+                return;
+            }
             switch (args[0].ToLower())
             {
                 case "w":
@@ -276,6 +312,34 @@ namespace GitVersioner
                 default:
                     return;
             }
+            Console.WriteLine("Finished!");
+        }
+
+        private static void NoGit()
+        {
+            Console.WriteLine("Unable to find Git binary!");
+        }
+
+        private static void ShowHelp()
+        {
+            string exename = Path.GetFileName(Assembly.GetExecutingAssembly().ToString());
+            Console.WriteLine();
+            Console.WriteLine("Usage: {0} [parameter] [file]", exename);
+            Console.WriteLine("Supported parameters:");
+            Console.WriteLine("W: write version information to file and do a backup");
+            Console.WriteLine("R: restore file from backup");
+            Console.WriteLine();
+            Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
+            Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
+            Console.WriteLine();
+            Console.WriteLine("Supported replacement strings:");
+            Console.WriteLine("$MajorVersion$");
+            Console.WriteLine("$MinorVersion$");
+            Console.WriteLine("$Revision$");
+            Console.WriteLine("$Commit$");
+            Console.WriteLine("$ShortHash$");
+            Console.WriteLine("$LongHash$");
+            Console.WriteLine("$Branch$");
         }
 
         private struct GitResult
