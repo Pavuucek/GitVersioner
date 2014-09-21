@@ -287,6 +287,7 @@ namespace GitVersioner
 
         private static void RestoreBackup(string sFile)
         {
+            Console.WriteLine("Restoring {0}...", sFile);
             string bkp = sFile + ".gwbackup";
             if (!File.Exists(bkp)) return;
             try
@@ -323,6 +324,7 @@ namespace GitVersioner
                     RestoreBackup(args[1]);
                     break;
                 default:
+                    ShowHelp();
                     return;
             }
             Console.WriteLine("Finished!");
