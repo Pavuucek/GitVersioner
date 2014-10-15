@@ -32,15 +32,13 @@ using Microsoft.Win32;
 
 namespace GitVersioner
 {
-
     /// <summary>
-    /// Main class of GitVersioner
+    ///     Main class of GitVersioner
     /// </summary>
     internal static class Program
     {
-
         /// <summary>
-        /// The git executable name
+        ///     The git executable name
         /// </summary>
         private static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix
             ? "git"
@@ -48,10 +46,10 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Gets a value indicating whether OS is 64bit.
+        ///     Gets a value indicating whether OS is 64bit.
         /// </summary>
         /// <value>
-        ///   <c>true</c> if [is64 bit]; otherwise, <c>false</c>.
+        ///     <c>true</c> if [is64 bit]; otherwise, <c>false</c>.
         /// </value>
         private static bool Is64Bit
         {
@@ -64,7 +62,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Gets Program Files directory
+        ///     Gets Program Files directory
         /// </summary>
         /// <returns>Program Files or Program Files (x86) directory</returns>
         private static string ProgramFilesX86()
@@ -78,7 +76,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Finds the git binary.
+        ///     Finds the git binary.
         /// </summary>
         /// <returns></returns>
         private static string FindGitBinary()
@@ -162,7 +160,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Writes the information.
+        ///     Writes the information.
         /// </summary>
         /// <param name="sFile">The input file.</param>
         /// <param name="backup">Backup input file first.</param>
@@ -213,7 +211,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Gets the version information.
+        ///     Gets the version information.
         /// </summary>
         /// <param name="workDir">The work dir.</param>
         /// <returns></returns>
@@ -304,7 +302,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Converts git results to string
+        ///     Converts git results to string
         /// </summary>
         /// <param name="gr">GitResult.</param>
         /// <returns></returns>
@@ -320,7 +318,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Executes the git program.
+        ///     Executes the git program.
         /// </summary>
         /// <param name="workDir">The work dir.</param>
         /// <param name="parameters">The parameters.</param>
@@ -348,7 +346,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Does the replace.
+        ///     Does the replace.
         /// </summary>
         /// <param name="inString">The input string.</param>
         /// <param name="gr">The GitResult.</param>
@@ -367,7 +365,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Restores the backup.
+        ///     Restores the backup.
         /// </summary>
         /// <param name="sFile">The input file (without gwbackup extension).</param>
         private static void RestoreBackup(string sFile)
@@ -389,7 +387,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Main function
+        ///     Main function
         /// </summary>
         /// <param name="args">The arguments.</param>
         private static void Main(string[] args)
@@ -422,7 +420,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Prints a message when Git is not found
+        ///     Prints a message when Git is not found
         /// </summary>
         private static void NoGit()
         {
@@ -431,7 +429,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// Shows the help.
+        ///     Shows the help.
         /// </summary>
         private static void ShowHelp()
         {
@@ -457,7 +455,7 @@ namespace GitVersioner
 
 
         /// <summary>
-        /// GitResult structure
+        ///     GitResult structure
         /// </summary>
         private struct GitResult
         {
