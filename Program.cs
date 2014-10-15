@@ -1,4 +1,28 @@
-﻿using System;
+﻿/*
+ * Copyright (c) 2006-2014 Michal Kuncl <michal.kuncl@gmail.com> http://www.pavucina.info
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
+ * is furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+ * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+ * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
+ * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
+ * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ * 
+ * 
+ * Uses some parts from GitRevision program by Yves Goergen
+ * http://dev.unclassified.de/en/apps/gitrevisiontool
+ * https://github.com/dg9ngf/GitRevisionTool
+ */
+
+
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -8,12 +32,27 @@ using Microsoft.Win32;
 
 namespace GitVersioner
 {
+
+    /// <summary>
+    /// Main class of GitVersioner
+    /// </summary>
     internal static class Program
     {
+
+        /// <summary>
+        /// The git executable name
+        /// </summary>
         private static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix
             ? "git"
             : "git.exe";
 
+
+        /// <summary>
+        /// Gets a value indicating whether OS is 64bit.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if [is64 bit]; otherwise, <c>false</c>.
+        /// </value>
         private static bool Is64Bit
         {
             get
@@ -23,6 +62,11 @@ namespace GitVersioner
             }
         }
 
+
+        /// <summary>
+        /// Gets Program Files directory
+        /// </summary>
+        /// <returns>Program Files or Program Files (x86) directory</returns>
         private static string ProgramFilesX86()
         {
             if (Is64Bit)
@@ -32,6 +76,11 @@ namespace GitVersioner
             return Environment.GetEnvironmentVariable("ProgramFiles");
         }
 
+
+        /// <summary>
+        /// Finds the git binary.
+        /// </summary>
+        /// <returns></returns>
         private static string FindGitBinary()
         {
             string git = null;
@@ -112,6 +161,11 @@ namespace GitVersioner
         }
 
 
+        /// <summary>
+        /// Writes the information.
+        /// </summary>
+        /// <param name="sFile">The input file.</param>
+        /// <param name="backup">Backup input file first.</param>
         private static void WriteInfo(string sFile, bool backup = true)
         {
             if (!File.Exists(sFile))
@@ -157,6 +211,12 @@ namespace GitVersioner
             }
         }
 
+
+        /// <summary>
+        /// Gets the version information.
+        /// </summary>
+        /// <param name="workDir">The work dir.</param>
+        /// <returns></returns>
         private static GitResult GetVersionInfo(string workDir)
         {
             Console.WriteLine("Getting version info for {0}", workDir);
@@ -242,6 +302,12 @@ namespace GitVersioner
             return r;
         }
 
+
+        /// <summary>
+        /// Converts git results to string
+        /// </summary>
+        /// <param name="gr">GitResult.</param>
+        /// <returns></returns>
         private static string GitResultToString(GitResult gr)
         {
             string s = gr.MajorVersion + ".";
@@ -252,6 +318,13 @@ namespace GitVersioner
             return s;
         }
 
+
+        /// <summary>
+        /// Executes the git program.
+        /// </summary>
+        /// <param name="workDir">The work dir.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns></returns>
         private static string ExecGit(string workDir, string parameters)
         {
             var psi = new ProcessStartInfo(FindGitBinary(), parameters)
@@ -273,6 +346,13 @@ namespace GitVersioner
             return r;
         }
 
+
+        /// <summary>
+        /// Does the replace.
+        /// </summary>
+        /// <param name="inString">The input string.</param>
+        /// <param name="gr">The GitResult.</param>
+        /// <returns></returns>
         private static string DoReplace(string inString, GitResult gr)
         {
             string r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
@@ -285,6 +365,11 @@ namespace GitVersioner
             return r;
         }
 
+
+        /// <summary>
+        /// Restores the backup.
+        /// </summary>
+        /// <param name="sFile">The input file (without gwbackup extension).</param>
         private static void RestoreBackup(string sFile)
         {
             Console.WriteLine("Restoring {0}...", sFile);
@@ -302,6 +387,11 @@ namespace GitVersioner
             }
         }
 
+
+        /// <summary>
+        /// Main function
+        /// </summary>
+        /// <param name="args">The arguments.</param>
         private static void Main(string[] args)
         {
             Console.WriteLine("GitVersioner");
@@ -330,11 +420,19 @@ namespace GitVersioner
             Console.WriteLine("Finished!");
         }
 
+
+        /// <summary>
+        /// Prints a message when Git is not found
+        /// </summary>
         private static void NoGit()
         {
             Console.WriteLine("Unable to find Git binary!");
         }
 
+
+        /// <summary>
+        /// Shows the help.
+        /// </summary>
         private static void ShowHelp()
         {
             string exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
@@ -357,6 +455,10 @@ namespace GitVersioner
             Console.WriteLine("$Branch$");
         }
 
+
+        /// <summary>
+        /// GitResult structure
+        /// </summary>
         private struct GitResult
         {
             public string Branch;
