@@ -163,7 +163,29 @@ namespace GitVersioner
         {
             _printMessages = false;
             var gr = GetVersionInfo(Directory.GetCurrentDirectory());
+            SetEnvironmentVariables(gr);
             Console.WriteLine(GitResultToString(gr));
+        }
+
+        /// <summary>
+        /// Sets the environment variables.
+        /// </summary>
+        /// <param name="gitResult">The git result.</param>
+        private static void SetEnvironmentVariables(GitResult gitResult)
+        {
+            var fullVersionWithBranch = DoReplace("$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$",
+                gitResult);
+            var fullVersion = DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$", gitResult);
+            const EnvironmentVariableTarget target = EnvironmentVariableTarget.Process;
+            Environment.SetEnvironmentVariable("GV-FullVersionWithBranch", fullVersionWithBranch, target);
+            Environment.SetEnvironmentVariable("GV-FullVersion", fullVersion);
+            Environment.SetEnvironmentVariable("GV-Branch", gitResult.Branch, target);
+            Environment.SetEnvironmentVariable("GV-MajorVersion", gitResult.MajorVersion.ToString(), target);
+            Environment.SetEnvironmentVariable("GV-MinorVersion", gitResult.MinorVersion.ToString(), target);
+            Environment.SetEnvironmentVariable("GV-Revision", gitResult.Revision.ToString(), target);
+            Environment.SetEnvironmentVariable("GV-Commit", gitResult.Commit.ToString(), target);
+            Environment.SetEnvironmentVariable("GV-ShortHash", gitResult.ShortHash, target);
+            Environment.SetEnvironmentVariable("GV-LongHash", gitResult.LongHash, target);
         }
 
         /// <summary>
@@ -185,6 +207,7 @@ namespace GitVersioner
                 // zapis
                 if (backup) File.Copy(sFile, bkp, true);
                 GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
+                SetEnvironmentVariables(git);
                 using (var infile = new StreamReader(bkp, Encoding.Default, true))
                 {
                     if (_printMessages) Console.WriteLine("Reading {0}...", sFile);
