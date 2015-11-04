@@ -478,7 +478,7 @@ namespace GitVersioner
             var fullSemVer =
                 DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$", gr)
                     .Replace("-master", string.Empty);
-            var psi = new ProcessStartInfo("Appveyor.exe", "-Version " + fullSemVer)
+            var psi = new ProcessStartInfo("Appveyor.exe", "UpdateBuild -Version " + fullSemVer)
             {
                 RedirectStandardOutput = true,
                 UseShellExecute = false
