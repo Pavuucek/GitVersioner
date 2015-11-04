@@ -323,6 +323,9 @@ namespace GitVersioner
             r.ShortHash = r.ShortHash.Trim();
             //
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
+            // we don't want branches to be called HEAD...
+            if (r.Branch == "HEAD")
+                r.Branch = ExecGit(workDir, "describe --all").Trim().Replace("heads/", string.Empty);
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             if (_printMessages) Console.WriteLine("Version info: {0}", GitResultToString(r));
             if (string.IsNullOrEmpty(lines))
