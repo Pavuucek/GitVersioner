@@ -462,7 +462,16 @@ namespace GitVersioner
                     break;
                 // notify: appveyor
                 case "ba":
-                    NotifyAppveyor();
+                    var param = string.Empty;
+                    if (args.Length < 2)
+                    {
+                        for (int i = 1; i < args.Length - 1; i++)
+                        {
+                            param += args[i] + " ";
+                        }
+                    }
+                    param = param.Trim();
+                    NotifyAppveyor(param);
                     break;
 
                 default:
@@ -475,13 +484,14 @@ namespace GitVersioner
         /// <summary>
         /// Notifies Appveyor build process.
         /// </summary>
-        private static void NotifyAppveyor()
+        private static void NotifyAppveyor(string versionFormat = "$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
             var gr = GetVersionInfo(Directory.GetCurrentDirectory());
-            var fullSemVer =
-                DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$", gr)
-                    .Replace("-master", string.Empty);
-            var psi = new ProcessStartInfo("Appveyor.exe", "UpdateBuild -Version " + fullSemVer)
+            if (versionFormat.ToLower().Trim() == "semver")
+                versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
+                    string.Empty);
+            versionFormat = DoReplace(versionFormat, gr);
+            var psi = new ProcessStartInfo("Appveyor.exe", "UpdateBuild -Version " + versionFormat)
             {
                 RedirectStandardOutput = true,
                 UseShellExecute = false
