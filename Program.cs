@@ -154,11 +154,14 @@ namespace GitVersioner
             return git;
         }
 
+        private static bool _printMessages = true;
+
         /// <summary>
         /// Prints version info to console.
         /// </summary>
         private static void PrintInfo()
         {
+            _printMessages = false;
             var gr = GetVersionInfo(Directory.GetCurrentDirectory());
             Console.WriteLine(GitResultToString(gr));
         }
@@ -184,11 +187,11 @@ namespace GitVersioner
                 GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
                 using (var infile = new StreamReader(bkp, Encoding.Default, true))
                 {
-                    Console.WriteLine("Reading {0}...", sFile);
+                    if (_printMessages) Console.WriteLine("Reading {0}...", sFile);
                     bool append = true;
                     using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
                     {
-                        Console.WriteLine("Writing {0}", sFile);
+                        if (_printMessages) Console.WriteLine("Writing {0}", sFile);
                         while (!infile.EndOfStream)
                         {
                             string l = infile.ReadLine();
@@ -198,7 +201,7 @@ namespace GitVersioner
                         // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
                         if (append)
                         {
-                            Console.WriteLine("Appending AssemblyInformationalVersion...");
+                            if (_printMessages) Console.WriteLine("Appending AssemblyInformationalVersion...");
                             outfile.WriteLine(
                                 DoReplace(
                                     "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
@@ -220,7 +223,7 @@ namespace GitVersioner
         /// <returns></returns>
         private static GitResult GetVersionInfo(string workDir)
         {
-            Console.WriteLine("Getting version info for {0}", workDir);
+            if (_printMessages) Console.WriteLine("Getting version info for {0}", workDir);
             string lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
@@ -295,7 +298,7 @@ namespace GitVersioner
             //
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
-            Console.WriteLine("Version info: {0}", GitResultToString(r));
+            if (_printMessages) Console.WriteLine("Version info: {0}", GitResultToString(r));
             if (string.IsNullOrEmpty(lines))
             {
                 Console.WriteLine("Possible error, git output follows:\n {0}", lines);
@@ -369,7 +372,7 @@ namespace GitVersioner
         /// <param name="sFile">The input file (without gwbackup extension).</param>
         private static void RestoreBackup(string sFile)
         {
-            Console.WriteLine("Restoring {0}...", sFile);
+            if (_printMessages) Console.WriteLine("Restoring {0}...", sFile);
             string bkp = sFile + ".gwbackup";
             if (!File.Exists(bkp)) return;
             try
@@ -433,7 +436,7 @@ namespace GitVersioner
                     ShowHelp();
                     return;
             }
-            Console.WriteLine("Finished!");
+            if (_printMessages) Console.WriteLine("Finished!");
         }
 
         /// <summary>
