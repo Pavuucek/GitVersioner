@@ -28,6 +28,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GitVersioner
 {
@@ -433,6 +434,7 @@ namespace GitVersioner
                 ShowHelp();
                 return;
             }
+            var param = string.Empty;
             switch (args[0].ToLower())
             {
                 // write mode (with backup)
@@ -455,6 +457,16 @@ namespace GitVersioner
                     break;
                 // auto-rewrite mode
                 case "a":
+                    param = string.Empty;
+                    if (args.Length < 2)
+                    {
+                        for (int i = 1; i < args.Length - 1; i++)
+                        {
+                            param += args[i] + " ";
+                        }
+                    }
+                    param = param.Trim();
+                    AutoSearchAndReplace(param);
                     break;
                 // print mode (just print version info)
                 case "p":
@@ -462,7 +474,7 @@ namespace GitVersioner
                     break;
                 // notify: appveyor
                 case "ba":
-                    var param = string.Empty;
+                    param = string.Empty;
                     if (args.Length < 2)
                     {
                         for (int i = 1; i < args.Length - 1; i++)
@@ -481,13 +493,39 @@ namespace GitVersioner
             if (_printMessages) Console.WriteLine("Finished!");
         }
 
+        private static void AutoSearchAndReplace(string fileName)
+        {
+            if (string.IsNullOrEmpty(fileName)) fileName = "Properties\\AssemblyInfo.cs";
+            if (!File.Exists(fileName))
+            {
+                Console.WriteLine("Unable to find file {0}", fileName);
+                return;
+            }
+            string bkp = fileName + ".gwbackup";
+            var gr = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
+            var contents = File.ReadAllText(fileName);
+            var assemblyVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
+                gr.Commit);
+            var assemblyInfoVersion = string.Format("{0}:{1}.{2}.{3}-{4}-{5}", gr.Branch, gr.MajorVersion,
+                gr.MinorVersion, gr.Revision, gr.Commit, gr.ShortHash);
+            var assemblyFileVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
+                gr.Commit);
+            contents = Regex.Replace(contents, @"AssemblyVersion\(""[^""]*""\)",
+                string.Format("AssemblyVersion(\"{0}\")", assemblyVersion));
+            contents = Regex.Replace(contents, @"AssemblyInformationalVersion\(""[^""]*""\)",
+                string.Format("AssemblyInformationalVersion(\"{0}\")", assemblyInfoVersion));
+            contents = Regex.Replace(contents, @"AssemblyFileVersion\(""[^""]*""\)",
+                string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
+            File.WriteAllText(fileName, contents);
+        }
+
         /// <summary>
         /// Notifies Appveyor build process.
         /// </summary>
-        private static void NotifyAppveyor(string versionFormat = "$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
+        private static void NotifyAppveyor(string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
             if (string.IsNullOrEmpty(versionFormat))
-                versionFormat = "$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
+                versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
             var gr = GetVersionInfo(Directory.GetCurrentDirectory());
             if (versionFormat.ToLower().Trim() == "semver")
                 versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
