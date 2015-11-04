@@ -5,30 +5,30 @@
  * including without limitation the rights to use, copy, modify, merge, publish, distribute,
  * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software
  * is furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all copies or
  * substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
  * INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE
  * FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- * 
- * 
+ *
+ *
  * Uses some parts from GitRevision program by Yves Goergen
  * http://dev.unclassified.de/en/apps/gitrevisiontool
  * https://github.com/dg9ngf/GitRevisionTool
  */
 
-
+using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Security.Policy;
 using System.Text;
-using Microsoft.Win32;
 
 namespace GitVersioner
 {
@@ -44,7 +44,6 @@ namespace GitVersioner
             ? "git"
             : "git.exe";
 
-
         /// <summary>
         ///     Gets a value indicating whether OS is 64bit.
         /// </summary>
@@ -56,10 +55,9 @@ namespace GitVersioner
             get
             {
                 return IntPtr.Size == 8 ||
-                       !String.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
+                       !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
             }
         }
-
 
         /// <summary>
         ///     Gets Program Files directory
@@ -73,7 +71,6 @@ namespace GitVersioner
             }
             return Environment.GetEnvironmentVariable("ProgramFiles");
         }
-
 
         /// <summary>
         ///     Finds the git binary.
@@ -101,7 +98,6 @@ namespace GitVersioner
                 }
             if (!File.Exists(git)) git = null;
 
-
             // Read registry uninstaller key
             if (git == null)
             {
@@ -111,7 +107,7 @@ namespace GitVersioner
                     object loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
-                        git = Path.Combine((string) loc, Path.Combine("bin", GitExeName));
+                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
                         if (!File.Exists(git)) git = null;
                     }
                 }
@@ -128,7 +124,7 @@ namespace GitVersioner
                     object loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
-                        git = Path.Combine((string) loc, Path.Combine("bin", GitExeName));
+                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
                         if (!File.Exists(git)) git = null;
                     }
                 }
@@ -158,6 +154,14 @@ namespace GitVersioner
             return git;
         }
 
+        /// <summary>
+        /// Prints version info to console.
+        /// </summary>
+        private static void PrintInfo()
+        {
+            var gr = GetVersionInfo(Directory.GetCurrentDirectory());
+            Console.WriteLine(GitResultToString(gr));
+        }
 
         /// <summary>
         ///     Writes the information.
@@ -208,7 +212,6 @@ namespace GitVersioner
                 Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
             }
         }
-
 
         /// <summary>
         ///     Gets the version information.
@@ -289,7 +292,7 @@ namespace GitVersioner
                 r.ShortHash = lines;
             }
             r.ShortHash = r.ShortHash.Trim();
-            // 
+            //
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             Console.WriteLine("Version info: {0}", GitResultToString(r));
@@ -299,7 +302,6 @@ namespace GitVersioner
             }
             return r;
         }
-
 
         /// <summary>
         ///     Converts git results to string
@@ -315,7 +317,6 @@ namespace GitVersioner
             s += gr.ShortHash;
             return s;
         }
-
 
         /// <summary>
         ///     Executes the git program.
@@ -344,7 +345,6 @@ namespace GitVersioner
             return r;
         }
 
-
         /// <summary>
         ///     Does the replace.
         /// </summary>
@@ -362,7 +362,6 @@ namespace GitVersioner
             r = r.Replace("$Branch$", gr.Branch);
             return r;
         }
-
 
         /// <summary>
         ///     Restores the backup.
@@ -385,7 +384,6 @@ namespace GitVersioner
             }
         }
 
-
         /// <summary>
         ///     Main function
         /// </summary>
@@ -398,26 +396,45 @@ namespace GitVersioner
                 NoGit();
                 return;
             }
-            if (args.Length < 2)
+            if (args.Length < 1)
             {
                 ShowHelp();
                 return;
             }
             switch (args[0].ToLower())
             {
+                // write mode (with backup)
                 case "w":
+                    if (args.Length < 2)
+                    {
+                        ShowHelp();
+                        return;
+                    }
                     WriteInfo(args[1]);
                     break;
+                // restore mode (from backup)
                 case "r":
+                    if (args.Length < 2)
+                    {
+                        ShowHelp();
+                        return;
+                    }
                     RestoreBackup(args[1]);
                     break;
+                // auto-rewrite mode
+                case "a":
+                    break;
+                // print mode (just print version info)
+                case "p":
+                    PrintInfo();
+                    break;
+
                 default:
                     ShowHelp();
                     return;
             }
             Console.WriteLine("Finished!");
         }
-
 
         /// <summary>
         ///     Prints a message when Git is not found
@@ -426,7 +443,6 @@ namespace GitVersioner
         {
             Console.WriteLine("Unable to find Git binary!");
         }
-
 
         /// <summary>
         ///     Shows the help.
@@ -439,6 +455,9 @@ namespace GitVersioner
             Console.WriteLine("Supported parameters:");
             Console.WriteLine("W: write version information to file and do a backup");
             Console.WriteLine("R: restore file from backup");
+            // TODO: write something intelligent here :-)
+            Console.WriteLine("A: Auto-Rewrite");
+            Console.WriteLine("P: just prints version info");
             Console.WriteLine();
             Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
             Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
@@ -451,8 +470,10 @@ namespace GitVersioner
             Console.WriteLine("$ShortHash$");
             Console.WriteLine("$LongHash$");
             Console.WriteLine("$Branch$");
+            Console.WriteLine();
+            // TODO: also write something about auto-rewrite mode here
+            Console.WriteLine("");
         }
-
 
         /// <summary>
         ///     GitResult structure
