@@ -27,7 +27,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Security.Policy;
 using System.Text;
 
 namespace GitVersioner
@@ -176,9 +175,13 @@ namespace GitVersioner
             var fullVersionWithBranch = DoReplace("$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$",
                 gitResult);
             var fullVersion = DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$", gitResult);
+            var fullSemVer =
+                DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$", gitResult)
+                    .Replace("-master", string.Empty);
             const EnvironmentVariableTarget target = EnvironmentVariableTarget.Process;
             Environment.SetEnvironmentVariable("GV-FullVersionWithBranch", fullVersionWithBranch, target);
-            Environment.SetEnvironmentVariable("GV-FullVersion", fullVersion);
+            Environment.SetEnvironmentVariable("GV-FullVersion", fullVersion, target);
+            Environment.SetEnvironmentVariable("GV-SemVer", fullSemVer, target);
             Environment.SetEnvironmentVariable("GV-Branch", gitResult.Branch, target);
             Environment.SetEnvironmentVariable("GV-MajorVersion", gitResult.MajorVersion.ToString(), target);
             Environment.SetEnvironmentVariable("GV-MinorVersion", gitResult.MinorVersion.ToString(), target);
@@ -454,12 +457,51 @@ namespace GitVersioner
                 case "p":
                     PrintInfo();
                     break;
+                // notify: appveyor
+                case "ba":
+                    NotifyAppveyor();
+                    break;
 
                 default:
                     ShowHelp();
                     return;
             }
             if (_printMessages) Console.WriteLine("Finished!");
+        }
+
+        /// <summary>
+        /// Notifies Appveyor build process.
+        /// </summary>
+        private static void NotifyAppveyor()
+        {
+            var gr = GetVersionInfo(Directory.GetCurrentDirectory());
+            var fullSemVer =
+                DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$", gr)
+                    .Replace("-master", string.Empty);
+            var psi = new ProcessStartInfo("Appveyor.exe", "-Version " + fullSemVer)
+            {
+                RedirectStandardOutput = true,
+                UseShellExecute = false
+            };
+            try
+            {
+                var p = Process.Start(psi);
+                var r = string.Empty;
+                while (p != null && !p.StandardOutput.EndOfStream)
+                {
+                    r += p.StandardOutput.ReadLine() + "\n";
+                }
+                if (p != null && !p.WaitForExit(1000))
+                {
+                    p.Kill();
+                }
+                Console.WriteLine(r);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("ERROR: Cannot find Appveyor binary! Error message follows:");
+                Console.WriteLine(e.ToString());
+            }
         }
 
         /// <summary>
@@ -484,6 +526,7 @@ namespace GitVersioner
             // TODO: write something intelligent here :-)
             Console.WriteLine("A: Auto-Rewrite");
             Console.WriteLine("P: just prints version info");
+            Console.WriteLine("BA: Send version info to Appveyor.exe");
             Console.WriteLine();
             Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
             Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
