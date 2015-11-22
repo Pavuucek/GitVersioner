@@ -501,7 +501,6 @@ namespace GitVersioner
                 Console.WriteLine("Unable to find file {0}", fileName);
                 return;
             }
-            string bkp = fileName + ".gwbackup";
             var gr = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
             var contents = File.ReadAllText(fileName);
             var assemblyVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
@@ -575,12 +574,14 @@ namespace GitVersioner
             Console.WriteLine();
             Console.WriteLine("Usage: {0} [parameter] [file]", exename);
             Console.WriteLine("Supported parameters:");
-            Console.WriteLine("W: write version information to file and do a backup");
-            Console.WriteLine("R: restore file from backup");
+            Console.WriteLine("W: * write version information to file and do a backup");
+            Console.WriteLine("R: * restore file from backup");
             // TODO: write something intelligent here :-)
-            Console.WriteLine("A: Auto-Rewrite");
+            Console.WriteLine("A: * Auto-Rewrite");
             Console.WriteLine("P: just prints version info");
             Console.WriteLine("BA: Send version info to Appveyor.exe");
+            Console.WriteLine();
+            Console.WriteLine("* = second parameter is expected");
             Console.WriteLine();
             Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
             Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
