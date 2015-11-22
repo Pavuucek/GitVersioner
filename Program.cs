@@ -23,11 +23,11 @@
 
 using Microsoft.Win32;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GitVersioner
@@ -43,6 +43,8 @@ namespace GitVersioner
         private static readonly string GitExeName = Environment.OSVersion.Platform == PlatformID.Unix
             ? "git"
             : "git.exe";
+
+        private static bool _printMessages = true;
 
         /// <summary>
         ///     Gets a value indicating whether OS is 64bit.
@@ -83,11 +85,11 @@ namespace GitVersioner
 
             // Try the PATH environment variable
 
-            string pathEnv = Environment.GetEnvironmentVariable("PATH");
+            var pathEnv = Environment.GetEnvironmentVariable("PATH");
             if (pathEnv != null)
-                foreach (string dir in pathEnv.Split(Path.PathSeparator))
+                foreach (var dir in pathEnv.Split(Path.PathSeparator))
                 {
-                    string sdir = dir;
+                    var sdir = dir;
                     if (sdir.StartsWith("\"") && sdir.EndsWith("\""))
                     {
                         // Strip quotes (no Path.PathSeparator supported in quoted directories though)
@@ -104,7 +106,7 @@ namespace GitVersioner
                 key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
                 if (key != null)
                 {
-                    object loc = key.GetValue("InstallLocation");
+                    var loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
                         git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
@@ -121,7 +123,7 @@ namespace GitVersioner
                         @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
                 if (key != null)
                 {
-                    object loc = key.GetValue("InstallLocation");
+                    var loc = key.GetValue("InstallLocation");
                     if (loc is string)
                     {
                         git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
@@ -134,7 +136,7 @@ namespace GitVersioner
             if (git == null)
             {
                 foreach (
-                    string dir in
+                    var dir in
                         Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
                             "git*"))
                 {
@@ -145,7 +147,7 @@ namespace GitVersioner
 
             // Try 32-bit program files directory
             if (git != null || !Is64Bit) return git;
-            foreach (string dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
+            foreach (var dir in Directory.GetDirectories(ProgramFilesX86(), "git*"))
             {
                 git = Path.Combine(dir, Path.Combine("bin", GitExeName));
                 if (!File.Exists(git)) git = null;
@@ -154,10 +156,8 @@ namespace GitVersioner
             return git;
         }
 
-        private static bool _printMessages = true;
-
         /// <summary>
-        /// Prints version info to console.
+        ///     Prints version info to console.
         /// </summary>
         private static void PrintInfo()
         {
@@ -168,13 +168,14 @@ namespace GitVersioner
         }
 
         /// <summary>
-        /// Sets the environment variables.
+        ///     Sets the environment variables.
         /// </summary>
         /// <param name="gitResult">The git result.</param>
         private static void SetEnvironmentVariables(GitResult gitResult)
         {
-            var fullVersionWithBranch = DoReplace("$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$",
-                gitResult);
+            var fullVersionWithBranch =
+                DoReplace("$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$",
+                    gitResult);
             var fullVersion = DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$", gitResult);
             var fullSemVer =
                 DoReplace("$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$", gitResult)
@@ -197,45 +198,41 @@ namespace GitVersioner
         /// </summary>
         /// <param name="sFile">The input file.</param>
         /// <param name="backup">Backup input file first.</param>
-        private static void WriteInfo(string sFile, bool backup = true)
+        /// <param name="append">if set to <c>true</c> [append].</param>
+        private static void WriteInfo(string sFile, bool backup = true, bool append = false)
         {
             if (!File.Exists(sFile))
             {
                 Console.WriteLine("Unable to find file {0}", sFile);
                 return;
             }
-            string bkp = sFile + ".gwbackup";
+            var bkp = sFile + ".gwbackup";
             //if (File.Exists(bkp)) return false;
             try
             {
                 // zapis
                 if (backup) File.Copy(sFile, bkp, true);
-                GitResult git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
+                var git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
                 SetEnvironmentVariables(git);
-                using (var infile = new StreamReader(bkp, Encoding.Default, true))
+
+                var contents = File.ReadAllLines(bkp);
+                if (_printMessages) Console.WriteLine("Reading {0}...", sFile);
+                if (_printMessages) Console.WriteLine("Replacing...");
+                var output = new List<string>();
+                foreach (var line in contents)
                 {
-                    if (_printMessages) Console.WriteLine("Reading {0}...", sFile);
-                    bool append = true;
-                    using (var outfile = new StreamWriter(sFile, false, infile.CurrentEncoding))
-                    {
-                        if (_printMessages) Console.WriteLine("Writing {0}", sFile);
-                        while (!infile.EndOfStream)
-                        {
-                            string l = infile.ReadLine();
-                            if (l != null && l.Contains("AssemblyInformationalVersion")) append = false;
-                            outfile.WriteLine(DoReplace(l, git));
-                        }
-                        // kdyz neni pritomno AssemblyInformationalVersion tak vlozit defaultni
-                        if (append)
-                        {
-                            if (_printMessages) Console.WriteLine("Appending AssemblyInformationalVersion...");
-                            outfile.WriteLine(
-                                DoReplace(
-                                    "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
-                                    git));
-                        }
-                    }
+                    if (line != null && line.Contains("AssemblyInformationalVersion")) append = false;
+                    output.Add(DoReplace(line, git));
                 }
+                if (append)
+                {
+                    if (_printMessages) Console.WriteLine("Appending AssemblyInformationalVersion...");
+                    output.Add(
+                        DoReplace(
+                            "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
+                            git));
+                }
+                File.WriteAllLines(sFile, output.ToArray());
             }
             catch (Exception e)
             {
@@ -251,7 +248,7 @@ namespace GitVersioner
         private static GitResult GetVersionInfo(string workDir)
         {
             if (_printMessages) Console.WriteLine("Getting version info for {0}", workDir);
-            string lines = ExecGit(workDir, "describe --long --tags --always");
+            var lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
             r.MinorVersion = 0;
@@ -260,11 +257,11 @@ namespace GitVersioner
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
             //lines = "g0a52e4b";
-            string[] part1 = lines.Split('-');
+            var part1 = lines.Split('-');
             if (part1.Length >= 3)
             {
                 // druhou cast rozdelit po teckach
-                string[] part2 = part1[0].Split('.');
+                var part2 = part1[0].Split('.');
                 if (part2.Length > 1)
                 {
                     // delsi nez 1: mame major a minor verzi
@@ -292,7 +289,7 @@ namespace GitVersioner
                 // mame jen major verzi
                 try
                 {
-                    string s = part2[0].ToLower();
+                    var s = part2[0].ToLower();
                     // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
                     if (s[0] == 'v')
                     {
@@ -343,7 +340,7 @@ namespace GitVersioner
         /// <returns></returns>
         private static string GitResultToString(GitResult gr)
         {
-            string s = gr.MajorVersion + ".";
+            var s = gr.MajorVersion + ".";
             s += gr.MinorVersion + ".";
             s += gr.Revision + "-";
             s += gr.Commit + "-";
@@ -365,8 +362,8 @@ namespace GitVersioner
                 RedirectStandardOutput = true,
                 UseShellExecute = false
             };
-            Process p = Process.Start(psi);
-            string r = string.Empty;
+            var p = Process.Start(psi);
+            var r = string.Empty;
             while (p != null && !p.StandardOutput.EndOfStream)
             {
                 r += p.StandardOutput.ReadLine() + "\n";
@@ -386,7 +383,7 @@ namespace GitVersioner
         /// <returns></returns>
         private static string DoReplace(string inString, GitResult gr)
         {
-            string r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
+            var r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$MinorVersion$", gr.MinorVersion.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$Revision$", gr.Revision.ToString(CultureInfo.InvariantCulture));
             r = r.Replace("$Commit$", gr.Commit.ToString(CultureInfo.InvariantCulture));
@@ -403,7 +400,7 @@ namespace GitVersioner
         private static void RestoreBackup(string sFile)
         {
             if (_printMessages) Console.WriteLine("Restoring {0}...", sFile);
-            string bkp = sFile + ".gwbackup";
+            var bkp = sFile + ".gwbackup";
             if (!File.Exists(bkp)) return;
             try
             {
@@ -434,7 +431,7 @@ namespace GitVersioner
                 ShowHelp();
                 return;
             }
-            var param = string.Empty;
+            string param;
             switch (args[0].ToLower())
             {
                 // write mode (with backup)
@@ -460,7 +457,7 @@ namespace GitVersioner
                     param = string.Empty;
                     if (args.Length < 2)
                     {
-                        for (int i = 1; i < args.Length - 1; i++)
+                        for (var i = 1; i < args.Length - 1; i++)
                         {
                             param += args[i] + " ";
                         }
@@ -477,7 +474,7 @@ namespace GitVersioner
                     param = string.Empty;
                     if (args.Length < 2)
                     {
-                        for (int i = 1; i < args.Length - 1; i++)
+                        for (var i = 1; i < args.Length - 1; i++)
                         {
                             param += args[i] + " ";
                         }
@@ -519,9 +516,10 @@ namespace GitVersioner
         }
 
         /// <summary>
-        /// Notifies Appveyor build process.
+        ///     Notifies Appveyor build process.
         /// </summary>
-        private static void NotifyAppveyor(string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
+        private static void NotifyAppveyor(
+            string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
             if (string.IsNullOrEmpty(versionFormat))
                 versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
@@ -570,7 +568,7 @@ namespace GitVersioner
         /// </summary>
         private static void ShowHelp()
         {
-            string exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
+            var exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
             Console.WriteLine();
             Console.WriteLine("Usage: {0} [parameter] [file]", exename);
             Console.WriteLine("Supported parameters:");
