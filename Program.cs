@@ -455,9 +455,9 @@ namespace GitVersioner
                 // auto-rewrite mode
                 case "a":
                     param = string.Empty;
-                    if (args.Length < 2)
+                    if (args.Length <= 2)
                     {
-                        for (var i = 1; i < args.Length - 1; i++)
+                        for (var i = 1; i < args.Length; i++)
                         {
                             param += args[i] + " ";
                         }
@@ -492,7 +492,8 @@ namespace GitVersioner
 
         private static void AutoSearchAndReplace(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName)) fileName = "Properties\\AssemblyInfo.cs";
+            if (string.IsNullOrEmpty(fileName))
+                fileName = Directory.GetCurrentDirectory() + "\\Properties\\AssemblyInfo.cs";
             if (!File.Exists(fileName))
             {
                 Console.WriteLine("Unable to find file {0}", fileName);
