@@ -67,11 +67,17 @@ namespace GitVersioner
         /// <returns>Program Files or Program Files (x86) directory</returns>
         private static string ProgramFilesX86()
         {
+            string result;
             if (Is64Bit)
             {
-                return Environment.GetEnvironmentVariable("ProgramFiles(x86)");
+                result = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
             }
-            return Environment.GetEnvironmentVariable("ProgramFiles");
+            else
+            {
+                result = Environment.GetEnvironmentVariable("ProgramFiles");
+            }
+            if (string.IsNullOrEmpty(result)) result = @"C:\Program Files\";
+            return result;
         }
 
         /// <summary>
@@ -238,6 +244,7 @@ namespace GitVersioner
             {
                 Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
             }
+            NotifyTeamCity();
         }
 
         /// <summary>
@@ -514,6 +521,24 @@ namespace GitVersioner
             contents = Regex.Replace(contents, @"AssemblyFileVersion\(""[^""]*""\)",
                 string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
             File.WriteAllText(fileName, contents);
+            NotifyTeamCity();
+        }
+
+        /// <summary>
+        ///     Notifies the Teamcity. Since it's a simple console output run it i more places than needed :-)
+        /// </summary>
+        /// <param name="versionFormat">The version format.</param>
+        private static void NotifyTeamCity(
+            string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
+        {
+            if (string.IsNullOrEmpty(versionFormat))
+                versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
+            var gr = GetVersionInfo(Directory.GetCurrentDirectory());
+            if (versionFormat.ToLower().Trim() == "semver")
+                versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
+                    string.Empty);
+            versionFormat = DoReplace(versionFormat, gr);
+            Console.WriteLine("##teamcity[buildNumber '{0}']", versionFormat);
         }
 
         /// <summary>
@@ -554,6 +579,8 @@ namespace GitVersioner
                 Console.WriteLine("ERROR: Cannot find Appveyor binary! Error message follows:");
                 Console.WriteLine(e.ToString());
             }
+            // also notify teamcity...
+            Console.WriteLine("##teamcity[buildNumber '{0}']", versionFormat);
         }
 
         /// <summary>
