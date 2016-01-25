@@ -245,6 +245,7 @@ namespace GitVersioner
             // we don't want branches to be called HEAD...
             if (r.Branch == "HEAD")
                 r.Branch = ExecGit(workDir, "describe --all").Trim().Replace("heads/", string.Empty);
+            r.Branch = CleanBranchName(r.Branch);
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             if (Program.PrintMessages) Console.WriteLine("Version info: {0}", GitResultToString(r));
             if (string.IsNullOrEmpty(lines))
@@ -252,6 +253,27 @@ namespace GitVersioner
                 Console.WriteLine("Possible error, git output follows:\n {0}", lines);
             }
             return r;
+        }
+
+        /// <summary>
+        /// Cleans the name of the branch.
+        /// </summary>
+        /// <param name="branch">The branch.</param>
+        /// <returns></returns>
+        public static string CleanBranchName(string branch)
+        {
+            var s = branch;
+            s = s.Replace("refs", string.Empty);
+            s = s.Replace("remotes", string.Empty);
+            s = s.Replace("remotes", string.Empty);
+            s = s.Replace("origin", string.Empty);
+            // get rid of all slashes
+            while (s.Contains("//"))
+            {
+                s = s.Replace("//", "/");
+            }
+            s = s.Replace("/", "-");
+            return s;
         }
 
         /// <summary>
