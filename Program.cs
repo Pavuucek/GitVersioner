@@ -28,6 +28,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace GitVersioner
@@ -221,7 +222,7 @@ namespace GitVersioner
                 var git = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
                 SetEnvironmentVariables(git);
 
-                var contents = File.ReadAllLines(bkp);
+                var contents = File.ReadAllLines(bkp,Encoding.UTF8);
                 if (_printMessages) Console.WriteLine("Reading {0}...", sFile);
                 if (_printMessages) Console.WriteLine("Replacing...");
                 var output = new List<string>();
@@ -238,7 +239,7 @@ namespace GitVersioner
                             "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
                             git));
                 }
-                File.WriteAllLines(sFile, output.ToArray());
+                File.WriteAllLines(sFile, output.ToArray(),Encoding.UTF8);
             }
             catch (Exception e)
             {
@@ -507,7 +508,7 @@ namespace GitVersioner
                 return;
             }
             var gr = GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
-            var contents = File.ReadAllText(fileName);
+            var contents = File.ReadAllText(fileName, Encoding.UTF8);
             var assemblyVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
                 gr.Commit);
             var assemblyInfoVersion = string.Format("{0}:{1}.{2}.{3}-{4}-{5}", gr.Branch, gr.MajorVersion,
@@ -520,7 +521,7 @@ namespace GitVersioner
                 string.Format("AssemblyInformationalVersion(\"{0}\")", assemblyInfoVersion));
             contents = Regex.Replace(contents, @"AssemblyFileVersion\(""[^""]*""\)",
                 string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
-            File.WriteAllText(fileName, contents);
+            File.WriteAllText(fileName, contents, Encoding.UTF8);
             NotifyTeamCity();
         }
 
