@@ -265,7 +265,7 @@ namespace GitVersioner
             var s = branch;
             s = s.Replace("refs", string.Empty);
             s = s.Replace("remotes", string.Empty);
-            s = s.Replace("remotes", string.Empty);
+            s = s.Replace("remote", string.Empty);
             s = s.Replace("origin", string.Empty);
             // get rid of all slashes
             while (s.Contains("//"))
