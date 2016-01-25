@@ -10,32 +10,34 @@ namespace GitVersioner
         ///     Notifies the Teamcity. Since it's a simple console output run it i more places than needed :-)
         /// </summary>
         /// <param name="versionFormat">The version format.</param>
-        private static void NotifyTeamCity(
+        /// <exception cref="UnauthorizedAccessException">The caller does not have the required permission. </exception>
+        public static void NotifyTeamCity(
             string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
             if (string.IsNullOrEmpty(versionFormat))
                 versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
-            var gr = Program.GetVersionInfo(Directory.GetCurrentDirectory());
+            var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
             if (versionFormat.ToLower().Trim() == "semver")
                 versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
                     string.Empty);
-            versionFormat = Program.DoReplace(versionFormat, gr);
+            versionFormat = Utilities.DoReplace(versionFormat, gr);
             Console.WriteLine("##teamcity[buildNumber '{0}']", versionFormat);
         }
 
         /// <summary>
         ///     Notifies Appveyor build process.
         /// </summary>
-        private static void NotifyAppveyor(
+        /// <exception cref="UnauthorizedAccessException">The caller does not have the required permission. </exception>
+        public static void NotifyAppveyor(
             string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
             if (string.IsNullOrEmpty(versionFormat))
                 versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
-            var gr = Program.GetVersionInfo(Directory.GetCurrentDirectory());
+            var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
             if (versionFormat.ToLower().Trim() == "semver")
                 versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
                     string.Empty);
-            versionFormat = Program.DoReplace(versionFormat, gr);
+            versionFormat = Utilities.DoReplace(versionFormat, gr);
             var psi = new ProcessStartInfo("Appveyor.exe", "UpdateBuild -Version " + versionFormat)
             {
                 RedirectStandardOutput = true,

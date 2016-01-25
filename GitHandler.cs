@@ -2,6 +2,7 @@ using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Security;
 
 namespace GitVersioner
 {
@@ -52,7 +53,11 @@ namespace GitVersioner
         ///     Finds the git binary.
         /// </summary>
         /// <returns></returns>
-        private static string FindGitBinary()
+        /// <exception cref="SecurityException">The caller does not have the required permission to perform this operation. </exception>
+        /// <exception cref="IOException">The <see cref="T:Microsoft.Win32.RegistryKey" /> that contains the specified value has been marked for deletion. </exception>
+        /// <exception cref="UnauthorizedAccessException">The user does not have the necessary registry rights.</exception>
+        /// <exception cref="DirectoryNotFoundException">The specified path is invalid (for example, it is on an unmapped drive). </exception>
+        public static string FindGitBinary()
         {
             string git = null;
             RegistryKey key;
@@ -228,7 +233,7 @@ namespace GitVersioner
         /// </summary>
         /// <param name="gr">GitResult.</param>
         /// <returns></returns>
-        private static string GitResultToString(GitResult gr)
+        public static string GitResultToString(GitResult gr)
         {
             var s = gr.MajorVersion + ".";
             s += gr.MinorVersion + ".";
