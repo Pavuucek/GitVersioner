@@ -38,6 +38,11 @@ namespace GitVersioner
         /// <param name="args">The arguments.</param>
         private static void Main(string[] args)
         {
+#if DEBUG
+            PrintMessages = true;
+#else
+            PrintMessages=false;
+#endif
             Console.WriteLine("GitVersioner");
             if (string.IsNullOrEmpty(GitHandler.FindGitBinary()))
             {

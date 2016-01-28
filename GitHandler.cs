@@ -241,6 +241,20 @@ namespace GitVersioner
             }
             r.ShortHash = r.ShortHash.Trim();
             //
+            // if no tags are present we'll get 0.0.0-0-abcdefg
+            // we should at least get commit count
+            if ((r.MajorVersion == 0) && (r.MinorVersion == 0) && (r.Revision == 0) && (r.Commit == 0))
+            {
+                var s = ExecGit(workDir, "rev-list --count HEAD").Trim();
+                try
+                {
+                    r.Commit = Convert.ToInt32(s);
+                }
+                catch
+                {
+                    r.Commit = 0;
+                }
+            }
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...
             if (r.Branch == "HEAD")
