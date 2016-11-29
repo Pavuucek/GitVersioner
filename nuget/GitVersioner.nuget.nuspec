@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>GitVersioner</id>
-    <version>1.0.2</version>
+    <version>$MajorVersion$.$MinorVersion$.$Revision$.$Commit$</version>
     <title>ArachNGIN GitVersioner</title>
     <authors>Michal Kuncl</authors>
     <owners>Pavuucek</owners>
