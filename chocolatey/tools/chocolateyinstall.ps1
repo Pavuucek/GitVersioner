@@ -1,0 +1,1 @@
+﻿Generate-BinFile "gitversioner" "$packageFolder\Tools\GitVersioner.exe"

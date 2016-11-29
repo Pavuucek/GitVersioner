@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <metadata>
+    <id>GitVersioner</id>
+    <version>1.0.2</version>
+    <title>ArachNGIN GitVersioner</title>
+    <authors>Michal Kuncl</authors>
+    <owners>Pavuucek</owners>
+    <licenseUrl>https://github.com/Pavuucek/GitVersioner/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/Pavuucek/GitVersioner</projectUrl>
+    <!--iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl-->
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A small tool to get version info from git and update AssemblyInfo.cs. You need to have git installed.</description>
+    <!--releaseNotes>Summary of changes made in this release of the package.</releaseNotes-->
+    <!--copyright>Copyright 2016</copyright-->
+    <tags>Git, Versioning, Tool</tags>
+    <developmentDependency>true</developmentDependency>
+  </metadata>
+  <files>
+    <file src="..\bin\Release\*.*" target="tools" />
+  </files>
+</package>
