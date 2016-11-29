@@ -8,7 +8,7 @@
     <projectUrl>https://github.com/Pavuucek/GitVersioner</projectUrl>
     <licenseUrl>https://github.com/Pavuucek/GitVersioner/blob/master/LICENSE</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <tags>Git, Versioning, Tool</tags>
+    <tags>Git Versioning Tool</tags>
     <description>A small tool to get version info from git and update AssemblyInfo.cs.</description>
     <dependencies>
       <dependency id="git" />
