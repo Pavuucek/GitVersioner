@@ -103,8 +103,8 @@ namespace GitVersioner
         {
             var exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
             Console.WriteLine();
-            Console.WriteLine("Usage: {0} [parameter] --file=[file]", exename);
-            Console.WriteLine("Supported parameters:");
+            Console.WriteLine("Usage: {0} [command] --file=[file] [other parameters]", exename);
+            Console.WriteLine("Supported command:");
             Console.WriteLine("write (short: w): * write version information to file and do a backup");
             Console.WriteLine("restore (short: r): * restore file from backup");
             // TODO: write something intelligent here :-)
@@ -130,7 +130,8 @@ namespace GitVersioner
             Console.WriteLine("$Branch$");
             Console.WriteLine();
             // TODO: also write something about auto-rewrite mode here
-            Console.WriteLine("");
+            Console.WriteLine();
+            Console.Write("Also: use --no-utf or --no-utf8 parameter to force writing in ASCII mode.");
         }
     }
 }

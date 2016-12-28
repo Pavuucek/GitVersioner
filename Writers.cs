@@ -55,7 +55,7 @@ namespace GitVersioner
                 var git = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(sFile)));
                 Utilities.SetEnvironmentVariables(git);
 
-                var contents = File.ReadAllLines(bkp, Encoding.UTF8);
+                var contents = File.ReadAllLines(bkp, Program.UseEncoding);
                 Console.WriteLine("Reading {0}...", sFile);
                 Console.WriteLine("Replacing...");
                 var output = new List<string>();
@@ -72,7 +72,7 @@ namespace GitVersioner
                             "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
                             git));
                 }
-                File.WriteAllLines(sFile, output.ToArray(), Encoding.UTF8);
+                File.WriteAllLines(sFile, output.ToArray(), Program.UseEncoding);
             }
             catch (Exception e)
             {
@@ -121,7 +121,7 @@ namespace GitVersioner
                 return;
             }
             var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
-            var contents = File.ReadAllText(fileName, Encoding.UTF8);
+            var contents = File.ReadAllText(fileName, Program.UseEncoding);
             var assemblyVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
                 gr.Commit);
             var assemblyInfoVersion = string.Format("{0}:{1}.{2}.{3}-{4}-{5}", gr.Branch, gr.MajorVersion,
@@ -136,7 +136,7 @@ namespace GitVersioner
                 string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
             try
             {
-                File.WriteAllText(fileName, contents, Encoding.UTF8);
+                File.WriteAllText(fileName, contents, Program.UseEncoding);
             }
             catch (Exception e)
             {

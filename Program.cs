@@ -23,6 +23,7 @@
 
 using ArachNGIN.CommandLine;
 using System;
+using System.Text;
 
 namespace GitVersioner
 {
@@ -32,6 +33,7 @@ namespace GitVersioner
     internal static class Program
     {
         private static Parameters _cmdLine;
+        public static Encoding UseEncoding = Encoding.UTF8;
 
         /// <summary>
         ///     Main function
@@ -52,6 +54,9 @@ namespace GitVersioner
                 Utilities.ShowHelp();
                 return;
             }
+            UseEncoding = Encoding.UTF8;
+            if (!string.IsNullOrEmpty(_cmdLine["no-utf"]) || !string.IsNullOrEmpty(_cmdLine["no-utf8"]))
+                UseEncoding = Encoding.ASCII;
             // write command: check for 'w' or 'write' and 'f' or 'file' parameter
             if (!string.IsNullOrEmpty(_cmdLine["w"]) || !string.IsNullOrEmpty(_cmdLine["write"]))
             {
