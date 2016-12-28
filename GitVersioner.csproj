@@ -46,6 +46,7 @@
     <Compile Include="GitHandler.cs" />
     <Compile Include="GitResult.cs" />
     <Compile Include="Notifiers.cs" />
+    <Compile Include="Parameters.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utilities.cs" />
