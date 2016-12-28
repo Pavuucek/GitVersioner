@@ -2,6 +2,8 @@
 using System.Collections.Specialized;
 using System.Text.RegularExpressions;
 
+// ReSharper disable once CheckNamespace
+
 namespace ArachNGIN.CommandLine
 {
     /// <summary>

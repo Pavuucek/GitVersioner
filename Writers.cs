@@ -47,7 +47,7 @@ namespace GitVersioner
                 return;
             }
             var bkp = sFile + ".gwbackup";
-            //if (File.Exists(bkp)) return false;
+            //if (File.Exists(bkp)) return false
             try
             {
                 // zapis
@@ -103,7 +103,11 @@ namespace GitVersioner
 
         /// <exception cref="DirectoryNotFoundException">The specified path is invalid (for example, it is on an unmapped drive). </exception>
         /// <exception cref="IOException">An I/O error occurred while opening the file. </exception>
-        /// <exception cref="UnauthorizedAccessException">path specified a file that is read-only.-or- This operation is not supported on the current platform.-or- path specified a directory.-or- The caller does not have the required permission. </exception>
+        /// <exception cref="UnauthorizedAccessException">
+        ///     path specified a file that is read-only.-or- This operation is not
+        ///     supported on the current platform.-or- path specified a directory.-or- The caller does not have the required
+        ///     permission.
+        /// </exception>
         /// <exception cref="FileNotFoundException">The file specified in path was not found. </exception>
         /// <exception cref="SecurityException">The caller does not have the required permission. </exception>
         public static void AutoSearchAndReplace(string fileName)
@@ -129,7 +133,15 @@ namespace GitVersioner
                 string.Format("AssemblyInformationalVersion(\"{0}\")", assemblyInfoVersion));
             contents = Regex.Replace(contents, @"AssemblyFileVersion\(""[^""]*""\)",
                 string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
-            File.WriteAllText(fileName, contents, Encoding.UTF8);
+            try
+            {
+                File.WriteAllText(fileName, contents, Encoding.UTF8);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Unable to write to file: {0}", fileName);
+                Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
+            }
             Notifiers.NotifyTeamCity();
         }
     }

@@ -21,6 +21,7 @@
  * https://github.com/dg9ngf/GitRevisionTool
  */
 
+using ArachNGIN.CommandLine;
 using System;
 
 namespace GitVersioner
@@ -31,6 +32,7 @@ namespace GitVersioner
     internal static class Program
     {
         public static bool PrintMessages = true;
+        public static Parameters CmdLine;
 
         /// <summary>
         ///     Main function
@@ -44,71 +46,78 @@ namespace GitVersioner
             PrintMessages=false;
 #endif
             Console.WriteLine("GitVersioner");
+            CmdLine = new Parameters(args);
             if (string.IsNullOrEmpty(GitHandler.FindGitBinary()))
             {
                 Utilities.NoGit();
                 return;
             }
+
             if (args.Length < 1)
             {
                 Utilities.ShowHelp();
                 return;
             }
-            string param;
-            switch (args[0].ToLower())
+            // write command: check for 'w' or 'write' and 'f' or 'file' parameter
+            if (!string.IsNullOrEmpty(CmdLine["w"]) || !string.IsNullOrEmpty(CmdLine["write"]))
             {
-                // write mode (with backup)
-                case "w":
-                    if (args.Length < 2)
-                    {
-                        Utilities.ShowHelp();
-                        return;
-                    }
-                    Writers.WriteInfo(args[1]);
-                    break;
-                // restore mode (from backup)
-                case "r":
-                    if (args.Length < 2)
-                    {
-                        Utilities.ShowHelp();
-                        return;
-                    }
-                    Writers.RestoreBackup(args[1]);
-                    break;
-                // auto-rewrite mode
-                case "a":
-                    param = string.Empty;
-                    if (args.Length <= 2)
-                    {
-                        for (var i = 1; i < args.Length; i++)
-                        {
-                            param += args[i] + " ";
-                        }
-                    }
-                    param = param.Trim();
-                    Writers.AutoSearchAndReplace(param);
-                    break;
-                // print mode (just print version info)
-                case "p":
-                    Utilities.PrintInfo();
-                    break;
-                // notify: appveyor
-                case "ba":
-                    param = string.Empty;
-                    if (args.Length < 2)
-                    {
-                        for (var i = 1; i < args.Length - 1; i++)
-                        {
-                            param += args[i] + " ";
-                        }
-                    }
-                    param = param.Trim();
-                    Notifiers.NotifyAppveyor(param);
-                    break;
-
-                default:
+                var f = CmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = CmdLine["file"];
+                if (string.IsNullOrEmpty(f))
+                {
+                    // 'f' or 'file' are not assigned: help and end
                     Utilities.ShowHelp();
                     return;
+                }
+                Writers.WriteInfo(f);
+            }
+            // restore command
+            else if (!string.IsNullOrEmpty(CmdLine["r"]) || !string.IsNullOrEmpty(CmdLine["restore"]))
+            {
+                var f = CmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = CmdLine["file"];
+                if (string.IsNullOrEmpty(f))
+                {
+                    // 'f' or 'file' are not assigned: help and end
+                    Utilities.ShowHelp();
+                    return;
+                }
+                Writers.RestoreBackup(f);
+            }
+            // auto search mode
+            else if (!string.IsNullOrEmpty(CmdLine["a"]) || !string.IsNullOrEmpty(CmdLine["auto"]))
+            {
+                var f = CmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = CmdLine["file"];
+                if (string.IsNullOrEmpty(f))
+                {
+                    // 'f' or 'file' are not assigned: help and end
+                    Utilities.ShowHelp();
+                    return;
+                }
+                Writers.AutoSearchAndReplace(f);
+            }
+            // notify appveyor
+            else if (!string.IsNullOrEmpty(CmdLine["ba"]) || !string.IsNullOrEmpty(CmdLine["build-appveyor"]))
+            {
+                var f = CmdLine["v"];
+                if (string.IsNullOrEmpty(f)) f = CmdLine["version"];
+                if (string.IsNullOrEmpty(f))
+                {
+                    // 'v' or 'version-format' are not assigned: help and end
+                    Utilities.ShowHelp();
+                    return;
+                }
+                Notifiers.NotifyAppveyor(f);
+            }
+            // print mode (just print version info)
+            else if (!string.IsNullOrEmpty(CmdLine["p"]) || !string.IsNullOrEmpty(CmdLine["print-info"]))
+            {
+                Utilities.PrintInfo();
+            }
+            else
+            {
+                Utilities.ShowHelp();
             }
             if (PrintMessages) Console.WriteLine("Finished!");
         }

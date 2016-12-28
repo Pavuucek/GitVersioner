@@ -24,6 +24,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace GitVersioner
 {
@@ -40,7 +41,7 @@ namespace GitVersioner
             if (string.IsNullOrEmpty(versionFormat))
                 versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
             var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
-            if (versionFormat.ToLower().Trim() == "semver")
+            if (versionFormat.ToLowerInvariant().Trim() == "semver")
                 versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
                     string.Empty);
             versionFormat = Utilities.DoReplace(versionFormat, gr);
@@ -57,7 +58,7 @@ namespace GitVersioner
             if (string.IsNullOrEmpty(versionFormat))
                 versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
             var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
-            if (versionFormat.ToLower().Trim() == "semver")
+            if (versionFormat.ToLowerInvariant().Trim() == "semver")
                 versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
                     string.Empty);
             versionFormat = Utilities.DoReplace(versionFormat, gr);
@@ -70,16 +71,12 @@ namespace GitVersioner
             {
                 Console.WriteLine("Starting Appveyor.exe UpdateBuild -Version " + versionFormat);
                 var p = Process.Start(psi);
-                var r = string.Empty;
+                var r = new StringBuilder();
                 while (p != null && !p.StandardOutput.EndOfStream)
-                {
-                    r += p.StandardOutput.ReadLine() + "\n";
-                }
+                    r.AppendLine(p.StandardOutput.ReadLine());
                 if (p != null && !p.WaitForExit(1000))
-                {
                     p.Kill();
-                }
-                Console.WriteLine(r);
+                Console.WriteLine(r.ToString());
             }
             catch (Exception e)
             {

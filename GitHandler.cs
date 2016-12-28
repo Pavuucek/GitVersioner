@@ -26,6 +26,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Security;
+using System.Text;
 
 namespace GitVersioner
 {
@@ -61,13 +62,9 @@ namespace GitVersioner
         {
             string result;
             if (Is64Bit)
-            {
                 result = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-            }
             else
-            {
                 result = Environment.GetEnvironmentVariable("ProgramFiles");
-            }
             if (string.IsNullOrEmpty(result)) result = @"C:\Program Files\";
             return result;
         }
@@ -96,10 +93,7 @@ namespace GitVersioner
                 {
                     var sdir = dir;
                     if (sdir.StartsWith("\"") && sdir.EndsWith("\""))
-                    {
-                        // Strip quotes (no Path.PathSeparator supported in quoted directories though)
                         sdir = sdir.Substring(1, sdir.Length - 2);
-                    }
                     git = Path.Combine(sdir, GitExeName);
                     if (File.Exists(git)) break;
                 }
@@ -139,16 +133,14 @@ namespace GitVersioner
 
             // Search program files directory
             if (git == null)
-            {
                 foreach (
                     var dir in
-                        Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
-                            "git*"))
+                    Directory.GetDirectories(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
+                        "git*"))
                 {
                     git = Path.Combine(dir, Path.Combine("bin", GitExeName));
                     if (!File.Exists(git)) git = null;
                 }
-            }
 
             // Try 32-bit program files directory
             if (git != null || !Is64Bit) return git;
@@ -177,7 +169,7 @@ namespace GitVersioner
             r.Commit = 0;
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
-            //lines = "g0a52e4b";
+            //lines = "g0a52e4b"
             var part1 = lines.Split('-');
             if (part1.Length >= 3)
             {
@@ -187,8 +179,6 @@ namespace GitVersioner
                 {
                     // delsi nez 1: mame major a minor verzi
                     if (part2.Length > 2)
-                    {
-                        // mame i revizi
                         try
                         {
                             r.Revision = Convert.ToInt32(part2[2]);
@@ -197,7 +187,6 @@ namespace GitVersioner
                         {
                             r.Revision = 0;
                         }
-                    }
                     try
                     {
                         r.MinorVersion = Convert.ToInt32(part2[1]);
@@ -210,12 +199,10 @@ namespace GitVersioner
                 // mame jen major verzi
                 try
                 {
-                    var s = part2[0].ToLower();
+                    var s = part2[0].ToLowerInvariant();
                     // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
                     if (s[0] == 'v')
-                    {
                         s = s.Remove(0, 1);
-                    }
                     r.MajorVersion = Convert.ToInt32(s);
                 }
                 catch
@@ -243,7 +230,7 @@ namespace GitVersioner
             //
             // if no tags are present we'll get 0.0.0-0-abcdefg
             // we should at least get commit count
-            if ((r.MajorVersion == 0) && (r.MinorVersion == 0) && (r.Revision == 0) && (r.Commit == 0))
+            if (r.MajorVersion == 0 && r.MinorVersion == 0 && r.Revision == 0 && r.Commit == 0)
             {
                 var s = ExecGit(workDir, "rev-list --count HEAD").Trim();
                 try
@@ -263,14 +250,12 @@ namespace GitVersioner
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             if (Program.PrintMessages) Console.WriteLine("Version info: {0}", GitResultToString(r));
             if (string.IsNullOrEmpty(lines))
-            {
                 Console.WriteLine("Possible error, git output follows:\n {0}", lines);
-            }
             return r;
         }
 
         /// <summary>
-        /// Cleans the name of the branch.
+        ///     Cleans the name of the branch.
         /// </summary>
         /// <param name="branch">The branch.</param>
         /// <returns></returns>
@@ -283,9 +268,7 @@ namespace GitVersioner
             s = s.Replace("origin", string.Empty);
             // get rid of all slashes
             while (s.Contains("//"))
-            {
                 s = s.Replace("//", "/");
-            }
             s = s.Replace("/", "-");
             return s;
         }
@@ -320,16 +303,12 @@ namespace GitVersioner
                 UseShellExecute = false
             };
             var p = Process.Start(psi);
-            var r = string.Empty;
+            var r = new StringBuilder();
             while (p != null && !p.StandardOutput.EndOfStream)
-            {
-                r += p.StandardOutput.ReadLine() + "\n";
-            }
+                r.AppendLine(p.StandardOutput.ReadLine());
             if (p != null && !p.WaitForExit(1000))
-            {
                 p.Kill();
-            }
-            return r;
+            return r.ToString();
         }
     }
 }

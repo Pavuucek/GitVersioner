@@ -104,19 +104,22 @@ namespace GitVersioner
         {
             var exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
             Console.WriteLine();
-            Console.WriteLine("Usage: {0} [parameter] [file]", exename);
+            Console.WriteLine("Usage: {0} [parameter] --file=[file]", exename);
             Console.WriteLine("Supported parameters:");
-            Console.WriteLine("W: * write version information to file and do a backup");
-            Console.WriteLine("R: * restore file from backup");
+            Console.WriteLine("write (short: w): * write version information to file and do a backup");
+            Console.WriteLine("restore (short: r): * restore file from backup");
             // TODO: write something intelligent here :-)
-            Console.WriteLine("A: * Auto-Rewrite");
-            Console.WriteLine("P: just prints version info");
-            Console.WriteLine("BA: Send version info to Appveyor.exe");
+            Console.WriteLine("auto (short: a): * Auto-Rewrite");
+            Console.WriteLine("print (short: p): just prints version info");
+            Console.WriteLine("build-appveyor (short: ba): ** Send version info to Appveyor.exe");
             Console.WriteLine();
-            Console.WriteLine("* = second parameter is expected");
+            Console.WriteLine("* = file (or f) parameter is expected");
             Console.WriteLine();
             Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
             Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
+            Console.WriteLine();
+            Console.WriteLine("** = version (or v) parameter is optional");
+            Console.WriteLine("for example {0} --build-appveyor --version=$MajorVersion$.$MinorVersion$", exename);
             Console.WriteLine();
             Console.WriteLine("Supported replacement strings:");
             Console.WriteLine("$MajorVersion$");
