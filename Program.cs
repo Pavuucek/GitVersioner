@@ -102,12 +102,7 @@ namespace GitVersioner
             {
                 var f = CmdLine["v"];
                 if (string.IsNullOrEmpty(f)) f = CmdLine["version"];
-                if (string.IsNullOrEmpty(f))
-                {
-                    // 'v' or 'version-format' are not assigned: help and end
-                    Utilities.ShowHelp();
-                    return;
-                }
+                if (string.IsNullOrEmpty(f)) f = string.Empty;
                 Notifiers.NotifyAppveyor(f);
             }
             // print mode (just print version info)
