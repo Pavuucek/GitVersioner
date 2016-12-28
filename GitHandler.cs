@@ -160,7 +160,7 @@ namespace GitVersioner
         /// <returns></returns>
         public static GitResult GetVersionInfo(string workDir)
         {
-            if (Program.PrintMessages) Console.WriteLine("Getting version info for {0}", workDir);
+            Console.WriteLine("Getting version info for {0}", workDir);
             var lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
             r.MajorVersion = 0;
@@ -248,7 +248,7 @@ namespace GitVersioner
                 r.Branch = ExecGit(workDir, "describe --all").Trim().Replace("heads/", string.Empty);
             r.Branch = CleanBranchName(r.Branch);
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
-            if (Program.PrintMessages) Console.WriteLine("Version info: {0}", GitResultToString(r));
+            Console.WriteLine("Version info: {0}", GitResultToString(r));
             if (string.IsNullOrEmpty(lines))
                 Console.WriteLine("Possible error, git output follows:\n {0}", lines);
             return r;

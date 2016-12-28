@@ -56,8 +56,8 @@ namespace GitVersioner
                 Utilities.SetEnvironmentVariables(git);
 
                 var contents = File.ReadAllLines(bkp, Encoding.UTF8);
-                if (Program.PrintMessages) Console.WriteLine("Reading {0}...", sFile);
-                if (Program.PrintMessages) Console.WriteLine("Replacing...");
+                Console.WriteLine("Reading {0}...", sFile);
+                Console.WriteLine("Replacing...");
                 var output = new List<string>();
                 foreach (var line in contents)
                 {
@@ -66,10 +66,11 @@ namespace GitVersioner
                 }
                 if (append)
                 {
-                    if (Program.PrintMessages) Console.WriteLine("Appending AssemblyInformationalVersion...");
-                    output.Add(Utilities.DoReplace(
-                        "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
-                        git));
+                    Console.WriteLine("Appending AssemblyInformationalVersion...");
+                    output.Add(
+                        Utilities.DoReplace(
+                            "[assembly: AssemblyInformationalVersion(\"$Branch$:$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$\")]",
+                            git));
                 }
                 File.WriteAllLines(sFile, output.ToArray(), Encoding.UTF8);
             }
@@ -86,7 +87,7 @@ namespace GitVersioner
         /// <param name="sFile">The input file (without gwbackup extension).</param>
         public static void RestoreBackup(string sFile)
         {
-            if (Program.PrintMessages) Console.WriteLine("Restoring {0}...", sFile);
+            Console.WriteLine("Restoring {0}...", sFile);
             var bkp = sFile + ".gwbackup";
             if (!File.Exists(bkp)) return;
             try

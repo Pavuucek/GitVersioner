@@ -38,7 +38,6 @@ namespace GitVersioner
         /// <exception cref="SecurityException">The caller does not have the required permission to perform this operation.</exception>
         public static void PrintInfo()
         {
-            Program.PrintMessages = false;
             var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
             SetEnvironmentVariables(gr);
             Console.WriteLine(GitHandler.GitResultToString(gr));
