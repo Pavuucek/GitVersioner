@@ -122,18 +122,18 @@ namespace GitVersioner
             }
             var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
             var contents = File.ReadAllText(fileName, Program.UseEncoding);
-            var assemblyVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
-                gr.Commit);
-            var assemblyInfoVersion = string.Format("{0}:{1}.{2}.{3}-{4}-{5}", gr.Branch, gr.MajorVersion,
-                gr.MinorVersion, gr.Revision, gr.Commit, gr.ShortHash);
-            var assemblyFileVersion = string.Format("{0}.{1}.{2}.{3}", gr.MajorVersion, gr.MinorVersion, gr.Revision,
-                gr.Commit);
+            var assemblyVersion =
+                $"{gr.MajorVersion.TryToInt32()}.{gr.MinorVersion.TryToInt32()}.{gr.Revision.TryToInt32()}.{gr.Commit.TryToInt32()}";
+            var assemblyInfoVersion =
+                $"{gr.Branch}:{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}-{gr.Commit}-{gr.ShortHash}";
+            var assemblyFileVersion =
+                $"{gr.MajorVersion.TryToInt32()}.{gr.MinorVersion.TryToInt32()}.{gr.Revision.TryToInt32()}.{gr.Commit.TryToInt32()}";
             contents = Regex.Replace(contents, @"AssemblyVersion\(""[^""]*""\)",
-                string.Format("AssemblyVersion(\"{0}\")", assemblyVersion));
+                $"AssemblyVersion(\"{assemblyVersion}\")");
             contents = Regex.Replace(contents, @"AssemblyInformationalVersion\(""[^""]*""\)",
-                string.Format("AssemblyInformationalVersion(\"{0}\")", assemblyInfoVersion));
+                $"AssemblyInformationalVersion(\"{assemblyInfoVersion}\")");
             contents = Regex.Replace(contents, @"AssemblyFileVersion\(""[^""]*""\)",
-                string.Format("AssemblyFileVersion(\"{0}\")", assemblyFileVersion));
+                $"AssemblyFileVersion(\"{assemblyFileVersion}\")");
             try
             {
                 File.WriteAllText(fileName, contents, Program.UseEncoding);

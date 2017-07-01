@@ -163,10 +163,10 @@ namespace GitVersioner
             Console.WriteLine("Getting version info for {0}", workDir);
             var lines = ExecGit(workDir, "describe --long --tags --always");
             GitResult r;
-            r.MajorVersion = 0;
-            r.MinorVersion = 0;
-            r.Revision = 0;
-            r.Commit = 0;
+            r.MajorVersion = "0";
+            r.MinorVersion = "0";
+            r.Revision = "0";
+            r.Commit = "0";
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
             //lines = "g0a52e4b"
@@ -179,45 +179,24 @@ namespace GitVersioner
                 {
                     // delsi nez 1: mame major a minor verzi
                     if (part2.Length > 2)
-                        try
-                        {
-                            r.Revision = Convert.ToInt32(part2[2]);
-                        }
-                        catch
-                        {
-                            r.Revision = 0;
-                        }
-                    try
-                    {
-                        r.MinorVersion = Convert.ToInt32(part2[1]);
-                    }
-                    catch
-                    {
-                        r.MinorVersion = 0;
-                    }
+                        
+                            r.Revision = part2[2];
+                        
+                    
+                        r.MinorVersion = part2[1];
+                    
                 }
                 // mame jen major verzi
-                try
-                {
+                
                     var s = part2[0].ToLowerInvariant();
                     // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
                     if (s[0] == 'v')
                         s = s.Remove(0, 1);
-                    r.MajorVersion = Convert.ToInt32(s);
-                }
-                catch
-                {
-                    r.MajorVersion = 0;
-                }
+                    r.MajorVersion = s;
+                
             }
-            try
-            {
-                r.Commit = Convert.ToInt32(part1[1]);
-            }
-            catch
-            {
-                r.Commit = 0;
-            }
+            r.Commit = part1[1];
+            
             try
             {
                 r.ShortHash = part1[2];
@@ -230,17 +209,12 @@ namespace GitVersioner
             //
             // if no tags are present we'll get 0.0.0-0-abcdefg
             // we should at least get commit count
-            if (r.MajorVersion == 0 && r.MinorVersion == 0 && r.Revision == 0 && r.Commit == 0)
+            if (r.MajorVersion.TryToInt32() == 0 && r.MinorVersion.TryToInt32() == 0 && r.Revision.TryToInt32() == 0 && r.Commit.TryToInt32() == 0)
             {
                 var s = ExecGit(workDir, "rev-list --count HEAD").Trim();
-                try
-                {
-                    r.Commit = Convert.ToInt32(s);
-                }
-                catch
-                {
-                    r.Commit = 0;
-                }
+
+                r.Commit = s;
+
             }
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...

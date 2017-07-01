@@ -29,11 +29,11 @@ namespace GitVersioner
     internal struct GitResult
     {
         public string Branch;
-        public int Commit;
+        public string Commit;
         public string LongHash;
-        public int MajorVersion;
-        public int MinorVersion;
-        public int Revision;
+        public string MajorVersion;
+        public string MinorVersion;
+        public string Revision;
         public string ShortHash;
     }
 }
