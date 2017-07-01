@@ -88,12 +88,6 @@ namespace GitVersioner
             {
                 var f = _cmdLine["f"];
                 if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
-                if (string.IsNullOrEmpty(f))
-                {
-                    // 'f' or 'file' are not assigned: help and end
-                    Utilities.ShowHelp();
-                    return;
-                }
                 Writers.AutoSearchAndReplace(f);
             }
             // notify appveyor
