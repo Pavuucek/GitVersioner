@@ -104,37 +104,36 @@ namespace GitVersioner
         public static void ShowHelp()
         {
             var exename = Path.GetFileName(Assembly.GetExecutingAssembly().ManifestModule.ToString());
-            Console.WriteLine();
-            Console.WriteLine("Usage: {0} [command] --file=[file] [other parameters]", exename);
-            Console.WriteLine("Supported command:");
-            Console.WriteLine("write (short: w): * write version information to file and do a backup");
-            Console.WriteLine("restore (short: r): * restore file from backup");
-            // TODO: write something intelligent here :-)
-            Console.WriteLine("auto (short: a): * Auto-Rewrite");
-            Console.WriteLine("project (short: o): Auto-Rewrite .NET Core projects in *.csproj and *.vbproj");
-            Console.WriteLine("print (short: p): just prints version info");
-            Console.WriteLine("build-appveyor (short: ba): ** Send version info to Appveyor.exe");
-            Console.WriteLine();
-            Console.WriteLine("* = file (or f) parameter is expected");
-            Console.WriteLine();
-            Console.WriteLine("for example {0} w Properties\\AssemblyInfo.cs", exename);
-            Console.WriteLine("or {0} r Properties\\AssemblyInfo.cs", exename);
-            Console.WriteLine();
-            Console.WriteLine("** = version (or v) parameter is optional");
-            Console.WriteLine("for example {0} --build-appveyor --version=$MajorVersion$.$MinorVersion$", exename);
-            Console.WriteLine();
-            Console.WriteLine("Supported replacement strings:");
-            Console.WriteLine("$MajorVersion$");
-            Console.WriteLine("$MinorVersion$");
-            Console.WriteLine("$Revision$");
-            Console.WriteLine("$Commit$");
-            Console.WriteLine("$ShortHash$");
-            Console.WriteLine("$LongHash$");
-            Console.WriteLine("$Branch$");
-            Console.WriteLine();
-            // TODO: also write something about auto-rewrite mode here
-            Console.WriteLine();
-            Console.Write("Also: use --no-utf or --no-utf8 parameter to force writing in ASCII mode.");
+            var helpmessage = $@"
+
+Usage: dotnet {exename} [command] --file=[file] [other parameters]
+Supported command:
+write (short: w): * write version information to file and do a backup
+restore (short: r): * restore file from backup
+auto (short: a): * Auto-Rewrite
+project (short: o): Auto-Rewrite .NET Core projects in *.csproj and *.vbproj
+print (short: p): just prints version info
+build-appveyor (short: ba): ** Send version info to Appveyor.exe
+
+* = file (or f) parameter is expected
+
+for example dotnet {exename} w Properties\\AssemblyInfo.cs
+or dotnet {exename} r Properties\\AssemblyInfo.cs
+
+** = version (or v) parameter is optional
+for example {exename} --build-appveyor --version=$MajorVersion$.$MinorVersion$
+
+Supported replacement strings:
+$MajorVersion$
+$MinorVersion$
+$Revision$
+$Commit$
+$ShortHash$
+$LongHash$
+$Branch$
+
+Also: use --no-utf or --no-utf8 parameter to force writing in ASCII mode.";
+            Console.WriteLine(helpmessage);
         }
 
 
