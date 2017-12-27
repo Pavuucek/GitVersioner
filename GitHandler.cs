@@ -21,11 +21,9 @@
  * https://github.com/dg9ngf/GitRevisionTool
  */
 
-using Microsoft.Win32;
 using System;
 using System.Diagnostics;
 using System.IO;
-using System.Security;
 using System.Text;
 
 namespace GitVersioner
@@ -73,7 +71,6 @@ namespace GitVersioner
         ///     Finds the git binary.
         /// </summary>
         /// <returns></returns>
-        /// <exception cref="SecurityException">The caller does not have the required permission to perform this operation. </exception>
         /// <exception cref="IOException">
         ///     The <see cref="T:Microsoft.Win32.RegistryKey" /> that contains the specified value has
         ///     been marked for deletion.
@@ -83,8 +80,7 @@ namespace GitVersioner
         public static string FindGitBinary()
         {
             string git = null;
-            RegistryKey key;
-
+            
             // Try the PATH environment variable
 
             var pathEnv = Environment.GetEnvironmentVariable("PATH");
@@ -99,38 +95,7 @@ namespace GitVersioner
                 }
             if (!File.Exists(git)) git = null;
 
-            // Read registry uninstaller key
-            if (git == null)
-            {
-                key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
-                if (key != null)
-                {
-                    var loc = key.GetValue("InstallLocation");
-                    if (loc is string)
-                    {
-                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
-                        if (!File.Exists(git)) git = null;
-                    }
-                }
-            }
-
-            // Try 64-bit registry key
-            if (git == null && Is64Bit)
-            {
-                key =
-                    Registry.LocalMachine.OpenSubKey(
-                        @"SOFTWARE\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Git_is1");
-                if (key != null)
-                {
-                    var loc = key.GetValue("InstallLocation");
-                    if (loc is string)
-                    {
-                        git = Path.Combine((string)loc, Path.Combine("bin", GitExeName));
-                        if (!File.Exists(git)) git = null;
-                    }
-                }
-            }
-
+            
             // Search program files directory
             if (git == null)
                 foreach (
