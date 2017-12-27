@@ -27,6 +27,7 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml;
 
 namespace GitVersioner
 {
@@ -102,6 +103,8 @@ namespace GitVersioner
             }
         }
 
+        ///<summary>Automatically searches and replaces git info</summary>
+        /// <param name="fileName">file name</param>
         /// <exception cref="DirectoryNotFoundException">The specified path is invalid (for example, it is on an unmapped drive). </exception>
         /// <exception cref="IOException">An I/O error occurred while opening the file. </exception>
         /// <exception cref="UnauthorizedAccessException">
@@ -111,17 +114,18 @@ namespace GitVersioner
         /// </exception>
         /// <exception cref="FileNotFoundException">The file specified in path was not found. </exception>
         /// <exception cref="SecurityException">The caller does not have the required permission. </exception>
-        public static void AutoSearchAndReplace(string fileName)
+        public static void AutoSearchAndReplaceAssemblyInfo(string fileName)
         {
-            if (string.IsNullOrEmpty(fileName))
-                fileName = Directory.GetCurrentDirectory() + "\\Properties\\AssemblyInfo.cs";
-            if (!File.Exists(fileName))
+            var fName = fileName;
+            if (string.IsNullOrEmpty(fName))
+                fName = Directory.GetCurrentDirectory() + "\\Properties\\AssemblyInfo.cs";
+            if (!File.Exists(fName))
             {
-                Console.WriteLine("Unable to find file {0}", fileName);
+                Console.WriteLine("Unable to find file {0}", fName);
                 return;
             }
-            var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fileName)));
-            var contents = File.ReadAllText(fileName, Program.UseEncoding);
+            var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fName)));
+            var contents = File.ReadAllText(fName, Program.UseEncoding);
             var assemblyVersion =
                 $"{gr.MajorVersion.TryToInt32()}.{gr.MinorVersion.TryToInt32()}.{gr.Revision.TryToInt32()}.{gr.Commit.TryToInt32()}";
             var assemblyInfoVersion =
@@ -136,14 +140,49 @@ namespace GitVersioner
                 $"AssemblyFileVersion(\"{assemblyFileVersion}\")");
             try
             {
-                File.WriteAllText(fileName, contents, Program.UseEncoding);
+                File.WriteAllText(fName, contents, Program.UseEncoding);
             }
             catch (Exception e)
             {
-                Console.WriteLine("Unable to write to file: {0}", fileName);
+                Console.WriteLine("Unable to write to file: {0}", fName);
                 Console.WriteLine("Error: '{0}' in '{1}'", e.Message, e.Source);
             }
             Notifiers.NotifyTeamCity();
+        }
+
+        public static void AutoSearchAndReplaceProject(string fileName)
+        {
+            var fName = fileName;
+            var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fName)));
+            var doc=new XmlDocument();
+            doc.Load(fName);
+            // validate document
+            var valid = doc.SelectSingleNode("/Project/PropertyGroup/TargetFramework");
+            if (valid != null && !valid.InnerText.Contains("netcore")) return;
+            var nodes = new List<string>()
+            {
+                "Version",
+                "AssemblyVersion",
+                "FileVersion"
+            };
+
+            var docnodes = doc.SelectNodes("/Project/PropertyGroup");
+            foreach (XmlNode docnode in docnodes)
+            {
+                foreach (var node in nodes)
+                {
+                    var node1 = docnode.SelectSingleNode(node);
+                    if (node1 == null)
+                    {
+                        var n1 = docnode.OwnerDocument.CreateNode(XmlNodeType.Element, node, null);
+                        n1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                        docnode.AppendChild(n1);
+                    }
+                    else node1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                }
+            }
+            
+            doc.Save(fName);
         }
     }
 }

@@ -88,7 +88,8 @@ namespace GitVersioner
             {
                 var f = _cmdLine["f"];
                 if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
-                Writers.AutoSearchAndReplace(f);
+                //Writers.AutoSearchAndReplaceAssemblyInfo(f);
+                Writers.AutoSearchAndReplaceProject(f);
             }
             // notify appveyor
             else if (!string.IsNullOrEmpty(_cmdLine["ba"]) || !string.IsNullOrEmpty(_cmdLine["build-appveyor"]))
