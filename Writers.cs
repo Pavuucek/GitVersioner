@@ -37,10 +37,11 @@ namespace GitVersioner
         /// </summary>
         /// <param name="sFile">The input file.</param>
         /// <param name="backup">Backup input file first.</param>
-        /// <param name="append">if set to <c>true</c> [append].</param>
+        /// <param name="append">if set to <c>true</c> [doAppend].</param>
         /// <exception cref="UnauthorizedAccessException">The caller does not have the required permission. </exception>
         public static void WriteInfo(string sFile, bool backup = true, bool append = false)
         {
+            var doAppend = append;
             if (!File.Exists(sFile))
             {
                 Console.WriteLine("Unable to find file {0}", sFile);
@@ -62,11 +63,11 @@ namespace GitVersioner
                 var output = new List<string>();
                 foreach (var line in contents)
                 {
-                    if (line != null && line.Contains("AssemblyInformationalVersion")) append = false;
+                    if (line != null && line.Contains("AssemblyInformationalVersion")) doAppend = false;
                     output.Add(Utilities.DoReplace(line, git));
                 }
 
-                if (append)
+                if (doAppend)
                 {
                     Console.WriteLine("Appending AssemblyInformationalVersion...");
                     output.Add(
