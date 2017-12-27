@@ -38,14 +38,15 @@ namespace GitVersioner
         public static void NotifyTeamCity(
             string versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$")
         {
-            if (string.IsNullOrEmpty(versionFormat))
-                versionFormat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
+            var vformat = versionFormat;
+            if (string.IsNullOrEmpty(vformat))
+                vformat = "$Branch$-$MajorVersion$.$MinorVersion$.$Revision$-$Commit$-$ShortHash$";
             var gr = GitHandler.GetVersionInfo(Directory.GetCurrentDirectory());
-            if (versionFormat.ToLowerInvariant().Trim() == "semver")
-                versionFormat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
+            if (vformat.ToLowerInvariant().Trim() == "semver")
+                vformat = "$MajorVersion$.$MinorVersion$.$Revision$-$Branch$+$Commit$".Replace("-master",
                     string.Empty);
-            versionFormat = Utilities.DoReplace(versionFormat, gr);
-            Console.WriteLine("##teamcity[buildNumber '{0}']", versionFormat);
+            vformat = Utilities.DoReplace(vformat, gr);
+            Console.WriteLine("##teamcity[buildNumber '{0}']", vformat);
         }
 
         /// <summary>
