@@ -23,6 +23,7 @@ namespace GitVersioner
             {
                 result = 0;
             }
+
             return result;
         }
     }

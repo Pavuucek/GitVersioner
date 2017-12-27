@@ -43,14 +43,9 @@ namespace GitVersioner
         /// <value>
         ///     <c>true</c> if [is64 bit]; otherwise, <c>false</c>.
         /// </value>
-        private static bool Is64Bit
-        {
-            get
-            {
-                return IntPtr.Size == 8 ||
-                       !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
-            }
-        }
+        private static bool Is64Bit => IntPtr.Size == 8 ||
+                                       !string.IsNullOrEmpty(
+                                           Environment.GetEnvironmentVariable("PROCESSOR_ARCHITEW6432"));
 
         /// <summary>
         ///     Gets Program Files directory
@@ -58,12 +53,10 @@ namespace GitVersioner
         /// <returns>Program Files or Program Files (x86) directory</returns>
         private static string ProgramFilesX86()
         {
-            string result;
-            if (Is64Bit)
-                result = Environment.GetEnvironmentVariable("ProgramFiles(x86)");
-            else
-                result = Environment.GetEnvironmentVariable("ProgramFiles");
+            var result = Environment.GetEnvironmentVariable(Is64Bit ? "ProgramFiles(x86)" : "ProgramFiles");
+
             if (string.IsNullOrEmpty(result)) result = @"C:\Program Files\";
+
             return result;
         }
 
@@ -80,7 +73,7 @@ namespace GitVersioner
         public static string FindGitBinary()
         {
             string git = null;
-            
+
             // Try the PATH environment variable
 
             var pathEnv = Environment.GetEnvironmentVariable("PATH");
@@ -93,9 +86,10 @@ namespace GitVersioner
                     git = Path.Combine(sdir, GitExeName);
                     if (File.Exists(git)) break;
                 }
+
             if (!File.Exists(git)) git = null;
 
-            
+
             // Search program files directory
             if (git == null)
                 foreach (
@@ -134,7 +128,6 @@ namespace GitVersioner
             r.Commit = "0";
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
-            //lines = "g0a52e4b"
             var part1 = lines.Split('-');
             if (part1.Length >= 3)
             {
@@ -143,25 +136,19 @@ namespace GitVersioner
                 if (part2.Length > 1)
                 {
                     // delsi nez 1: mame major a minor verzi
-                    if (part2.Length > 2)
-                        
-                            r.Revision = part2[2];
-                        
-                    
-                        r.MinorVersion = part2[1];
-                    
+                    if (part2.Length > 2) r.Revision = part2[2];
+                    r.MinorVersion = part2[1];
                 }
                 // mame jen major verzi
-                
-                    var s = part2[0].ToLowerInvariant();
-                    // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
-                    if (s[0] == 'v')
-                        s = s.Remove(0, 1);
-                    r.MajorVersion = s;
-                
+
+                var s = part2[0].ToLowerInvariant();
+                // kdyby nahodou nekdo chtel pojmenovavat git tagy v1.0.0 atd (tj zacinajci ne cislem ale v)
+                if (s[0] == 'v') s = s.Remove(0, 1);
+                r.MajorVersion = s;
             }
+
             r.Commit = part1[1];
-            
+
             try
             {
                 r.ShortHash = part1[2];
@@ -170,17 +157,19 @@ namespace GitVersioner
             {
                 r.ShortHash = lines;
             }
+
             r.ShortHash = r.ShortHash.Trim();
             //
             // if no tags are present we'll get 0.0.0-0-abcdefg
             // we should at least get commit count
-            if (r.MajorVersion.TryToInt32() == 0 && r.MinorVersion.TryToInt32() == 0 && r.Revision.TryToInt32() == 0 && r.Commit.TryToInt32() == 0)
+            if (r.MajorVersion.TryToInt32() == 0 && r.MinorVersion.TryToInt32() == 0 && r.Revision.TryToInt32() == 0 &&
+                r.Commit.TryToInt32() == 0)
             {
                 var s = ExecGit(workDir, "rev-list --count HEAD").Trim();
 
                 r.Commit = s;
-
             }
+
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...
             if (r.Branch == "HEAD")

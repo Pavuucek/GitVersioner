@@ -83,6 +83,7 @@ namespace GitVersioner
                 Console.WriteLine("ERROR: Cannot find Appveyor binary! Error message follows:");
                 Console.WriteLine(e.ToString());
             }
+
             // also notify teamcity...
             Console.WriteLine("##teamcity[buildNumber '{0}']", versionFormat);
         }
