@@ -71,6 +71,8 @@ namespace ArachNGIN.CommandLine
 
                         currentParameter = null;
                         break;
+                    default:
+                        return;
                 }
             }
 
