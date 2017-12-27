@@ -32,7 +32,6 @@ namespace GitVersioner
     /// </summary>
     internal static class Program
     {
-        private static Parameters _cmdLine;
         public static Encoding UseEncoding = Encoding.UTF8;
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace GitVersioner
         private static void Main(string[] args)
         {
             Console.WriteLine("GitVersioner");
-            _cmdLine = new Parameters(args);
+            var cmdLine = new Parameters(args);
             if (string.IsNullOrEmpty(GitHandler.FindGitBinary()))
             {
                 Utilities.NoGit();
@@ -56,13 +55,13 @@ namespace GitVersioner
             }
 
             UseEncoding = Encoding.UTF8;
-            if (!string.IsNullOrEmpty(_cmdLine["no-utf"]) || !string.IsNullOrEmpty(_cmdLine["no-utf8"]))
+            if (!string.IsNullOrEmpty(cmdLine["no-utf"]) || !string.IsNullOrEmpty(cmdLine["no-utf8"]))
                 UseEncoding = Encoding.ASCII;
             // write command: check for 'w' or 'write' and 'f' or 'file' parameter
-            if (!string.IsNullOrEmpty(_cmdLine["w"]) || !string.IsNullOrEmpty(_cmdLine["write"]))
+            if (!string.IsNullOrEmpty(cmdLine["w"]) || !string.IsNullOrEmpty(cmdLine["write"]))
             {
-                var f = _cmdLine["f"];
-                if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
+                var f = cmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = cmdLine["file"];
                 if (string.IsNullOrEmpty(f))
                 {
                     // 'f' or 'file' are not assigned: help and end
@@ -73,10 +72,10 @@ namespace GitVersioner
                 Writers.WriteInfo(f);
             }
             // restore command
-            else if (!string.IsNullOrEmpty(_cmdLine["r"]) || !string.IsNullOrEmpty(_cmdLine["restore"]))
+            else if (!string.IsNullOrEmpty(cmdLine["r"]) || !string.IsNullOrEmpty(cmdLine["restore"]))
             {
-                var f = _cmdLine["f"];
-                if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
+                var f = cmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = cmdLine["file"];
                 if (string.IsNullOrEmpty(f))
                 {
                     // 'f' or 'file' are not assigned: help and end
@@ -87,27 +86,27 @@ namespace GitVersioner
                 Writers.RestoreBackup(f);
             }
             // auto search mode
-            else if (!string.IsNullOrEmpty(_cmdLine["a"]) || !string.IsNullOrEmpty(_cmdLine["auto"]))
+            else if (!string.IsNullOrEmpty(cmdLine["a"]) || !string.IsNullOrEmpty(cmdLine["auto"]))
             {
-                var f = _cmdLine["f"];
-                if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
+                var f = cmdLine["f"];
+                if (string.IsNullOrEmpty(f)) f = cmdLine["file"];
                 Writers.AutoSearchAndReplaceAssemblyInfo(f);
             }
             // auto replace mode for dotnet projects
-            else if (!string.IsNullOrEmpty(_cmdLine["o"]) || !string.IsNullOrEmpty(_cmdLine["project"]))
+            else if (!string.IsNullOrEmpty(cmdLine["o"]) || !string.IsNullOrEmpty(cmdLine["project"]))
             {
                 Writers.AutoSearchAndReplaceProjects();
             }
             // notify appveyor
-            else if (!string.IsNullOrEmpty(_cmdLine["ba"]) || !string.IsNullOrEmpty(_cmdLine["build-appveyor"]))
+            else if (!string.IsNullOrEmpty(cmdLine["ba"]) || !string.IsNullOrEmpty(cmdLine["build-appveyor"]))
             {
-                var f = _cmdLine["v"];
-                if (string.IsNullOrEmpty(f)) f = _cmdLine["version"];
+                var f = cmdLine["v"];
+                if (string.IsNullOrEmpty(f)) f = cmdLine["version"];
                 if (string.IsNullOrEmpty(f)) f = string.Empty;
                 Notifiers.NotifyAppveyor(f);
             }
             // print mode (just print version info)
-            else if (!string.IsNullOrEmpty(_cmdLine["p"]) || !string.IsNullOrEmpty(_cmdLine["print-info"]))
+            else if (!string.IsNullOrEmpty(cmdLine["p"]) || !string.IsNullOrEmpty(cmdLine["print-info"]))
             {
                 Utilities.PrintInfo();
             }
