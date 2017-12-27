@@ -21,9 +21,9 @@
  * https://github.com/dg9ngf/GitRevisionTool
  */
 
-using ArachNGIN.CommandLine;
 using System;
 using System.Text;
+using ArachNGIN.CommandLine;
 
 namespace GitVersioner
 {
@@ -54,6 +54,7 @@ namespace GitVersioner
                 Utilities.ShowHelp();
                 return;
             }
+
             UseEncoding = Encoding.UTF8;
             if (!string.IsNullOrEmpty(_cmdLine["no-utf"]) || !string.IsNullOrEmpty(_cmdLine["no-utf8"]))
                 UseEncoding = Encoding.ASCII;
@@ -68,6 +69,7 @@ namespace GitVersioner
                     Utilities.ShowHelp();
                     return;
                 }
+
                 Writers.WriteInfo(f);
             }
             // restore command
@@ -81,6 +83,7 @@ namespace GitVersioner
                     Utilities.ShowHelp();
                     return;
                 }
+
                 Writers.RestoreBackup(f);
             }
             // auto search mode
@@ -88,8 +91,12 @@ namespace GitVersioner
             {
                 var f = _cmdLine["f"];
                 if (string.IsNullOrEmpty(f)) f = _cmdLine["file"];
-                //Writers.AutoSearchAndReplaceAssemblyInfo(f);
-                Writers.AutoSearchAndReplaceProject(f);
+                Writers.AutoSearchAndReplaceAssemblyInfo(f);
+            }
+            // auto replace mode for dotnet projects
+            else if (!string.IsNullOrEmpty(_cmdLine["o"]) || !string.IsNullOrEmpty(_cmdLine["project"]))
+            {
+                Writers.AutoSearchAndReplaceProjects();
             }
             // notify appveyor
             else if (!string.IsNullOrEmpty(_cmdLine["ba"]) || !string.IsNullOrEmpty(_cmdLine["build-appveyor"]))
@@ -108,6 +115,7 @@ namespace GitVersioner
             {
                 Utilities.ShowHelp();
             }
+
             Console.WriteLine("Finished!");
         }
     }

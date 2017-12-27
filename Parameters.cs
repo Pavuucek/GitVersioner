@@ -30,7 +30,7 @@ namespace ArachNGIN.CommandLine
             {
                 string[] parts;
                 if (isParam.IsMatch(s)) parts = splitter.Split(s, 3);
-                else parts = new[] { s };
+                else parts = new[] {s};
                 //var parts = splitter.Split(s, 3)
                 switch (parts.Length)
                 {
@@ -42,6 +42,7 @@ namespace ArachNGIN.CommandLine
                                 parts[0] = remover.Replace(parts[0], "$1");
                                 _dict.Add(currentParameter, parts[0]);
                             }
+
                             currentParameter = null;
                         }
                         else
@@ -49,6 +50,7 @@ namespace ArachNGIN.CommandLine
                             // add unmatched parameters as "false" (without -, / or --)
                             if (!_dict.ContainsKey(parts[0])) _dict.Add(parts[0], "false");
                         }
+
                         break;
 
                     case 2:
@@ -66,10 +68,12 @@ namespace ArachNGIN.CommandLine
                             parts[2] = remover.Replace(parts[2], "$1");
                             _dict.Add(currentParameter, parts[2]);
                         }
+
                         currentParameter = null;
                         break;
                 }
             }
+
             if (currentParameter != null && !_dict.ContainsKey(currentParameter)) _dict.Add(currentParameter, "true");
         }
 
@@ -81,9 +85,6 @@ namespace ArachNGIN.CommandLine
         /// </value>
         /// <param name="param">The parameter.</param>
         /// <returns></returns>
-        public string this[string param]
-        {
-            get { return _dict[param]; }
-        }
+        public string this[string param] => _dict[param];
     }
 }

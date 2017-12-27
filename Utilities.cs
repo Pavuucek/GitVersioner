@@ -111,6 +111,7 @@ namespace GitVersioner
             Console.WriteLine("restore (short: r): * restore file from backup");
             // TODO: write something intelligent here :-)
             Console.WriteLine("auto (short: a): * Auto-Rewrite");
+            Console.WriteLine("project (short: o): Auto-Rewrite .NET Core projects in *.csproj and *.vbproj");
             Console.WriteLine("print (short: p): just prints version info");
             Console.WriteLine("build-appveyor (short: ba): ** Send version info to Appveyor.exe");
             Console.WriteLine();

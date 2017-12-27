@@ -155,40 +155,46 @@ namespace GitVersioner
             Notifiers.NotifyTeamCity();
         }
 
-        public static void AutoSearchAndReplaceProject(string fileName)
+        public static void AutoSearchAndReplaceProjects()
         {
-            var fName = fileName;
-            var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fName)));
-            var doc = new XmlDocument();
-            doc.Load(fName);
-            // validate document
-            var valid = doc.SelectSingleNode("/Project/PropertyGroup/TargetFramework");
-            if (valid != null && !valid.InnerText.Contains("netcore")) return;
-            var nodes = new List<string>
+            var projects = Utilities.SearchForFiles("*.csproj");
+            projects.AddRange(Utilities.SearchForFiles("*.vbproj"));
+            if (projects.Count == 0) return;
+            foreach (var fName in projects)
             {
-                "Version",
-                "AssemblyVersion",
-                "FileVersion"
-            };
+                Console.WriteLine("Processing " + fName);
+                var gr = GitHandler.GetVersionInfo(Path.GetDirectoryName(Path.GetFullPath(fName)));
+                var doc = new XmlDocument();
+                doc.Load(fName);
+                // validate document
+                var valid = doc.SelectSingleNode("/Project/PropertyGroup/TargetFramework");
+                if (valid != null && !valid.InnerText.Contains("netcore")) return;
+                var nodes = new List<string>
+                {
+                    "Version",
+                    "AssemblyVersion",
+                    "FileVersion"
+                };
 
-            var docnodes = doc.SelectNodes("/Project/PropertyGroup");
-            foreach (XmlNode docnode in docnodes)
-            foreach (var node in nodes)
-            {
-                var node1 = docnode.SelectSingleNode(node);
-                if (node1 == null)
+                var docnodes = doc.SelectNodes("/Project/PropertyGroup");
+                foreach (XmlNode docnode in docnodes)
+                foreach (var node in nodes)
                 {
-                    var n1 = docnode.OwnerDocument.CreateNode(XmlNodeType.Element, node, null);
-                    n1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
-                    docnode.AppendChild(n1);
+                    var node1 = docnode.SelectSingleNode(node);
+                    if (node1 == null)
+                    {
+                        var n1 = docnode.OwnerDocument.CreateNode(XmlNodeType.Element, node, null);
+                        n1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                        docnode.AppendChild(n1);
+                    }
+                    else
+                    {
+                        node1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                    }
                 }
-                else
-                {
-                    node1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
-                }
+
+                doc.Save(fName);
             }
-
-            doc.Save(fName);
         }
     }
 }
