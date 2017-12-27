@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GitVersioner": {
+      "commandName": "Project",
+      "commandLineArgs": "o"
+    }
+  }
+}
