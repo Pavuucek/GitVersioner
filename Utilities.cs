@@ -22,8 +22,10 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Security;
 
@@ -62,10 +64,10 @@ namespace GitVersioner
             Environment.SetEnvironmentVariable("GV-FullVersion", fullVersion, target);
             Environment.SetEnvironmentVariable("GV-SemVer", fullSemVer, target);
             Environment.SetEnvironmentVariable("GV-Branch", gitResult.Branch, target);
-            Environment.SetEnvironmentVariable("GV-MajorVersion", gitResult.MajorVersion.ToString(), target);
-            Environment.SetEnvironmentVariable("GV-MinorVersion", gitResult.MinorVersion.ToString(), target);
-            Environment.SetEnvironmentVariable("GV-Revision", gitResult.Revision.ToString(), target);
-            Environment.SetEnvironmentVariable("GV-Commit", gitResult.Commit.ToString(), target);
+            Environment.SetEnvironmentVariable("GV-MajorVersion", gitResult.MajorVersion, target);
+            Environment.SetEnvironmentVariable("GV-MinorVersion", gitResult.MinorVersion, target);
+            Environment.SetEnvironmentVariable("GV-Revision", gitResult.Revision, target);
+            Environment.SetEnvironmentVariable("GV-Commit", gitResult.Commit, target);
             Environment.SetEnvironmentVariable("GV-ShortHash", gitResult.ShortHash, target);
             Environment.SetEnvironmentVariable("GV-LongHash", gitResult.LongHash, target);
         }
@@ -132,6 +134,14 @@ namespace GitVersioner
             // TODO: also write something about auto-rewrite mode here
             Console.WriteLine();
             Console.Write("Also: use --no-utf or --no-utf8 parameter to force writing in ASCII mode.");
+        }
+
+
+        public static List<string> SearchForFiles(string pattern)
+        {
+            var files = Directory.GetFiles(Directory.GetCurrentDirectory(), pattern, SearchOption.AllDirectories);
+
+            return files.ToList();
         }
     }
 }
