@@ -4,9 +4,9 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <StartupObject>GitVersioner.Program</StartupObject>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>17.07.01.10</Version>
-    <AssemblyVersion>17.07.01.10</AssemblyVersion>
-    <FileVersion>17.07.01.10</FileVersion>
+    <Version>17.12.27.0</Version>
+    <AssemblyVersion>17.12.27.0</AssemblyVersion>
+    <FileVersion>17.12.27.0</FileVersion>
     <Description>A small tool to get version info from git and update AssemblyInfo.cs. You need to have git installed.</Description>
     <Product>ArachNGIN GitVersioner</Product>
     <Authors>Michal Kuncl</Authors>
@@ -15,7 +15,4 @@
     <PackageProjectUrl>https://github.com/Pavuucek/GitVersioner</PackageProjectUrl>
     <PackageTags>Git, Versioning, Tool</PackageTags>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="GitForWindows" Version="2.15.1.2" />
-  </ItemGroup>
 </Project>
