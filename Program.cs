@@ -22,6 +22,7 @@
  */
 
 using System;
+using System.IO;
 using System.Text;
 using ArachNGIN.CommandLine;
 
@@ -41,6 +42,12 @@ namespace GitVersioner
         private static void Main(string[] args)
         {
             Console.WriteLine("GitVersioner");
+            if (Directory.Exists(Directory.GetCurrentDirectory() + "/.git"))
+            {
+                Console.WriteLine("ERROR: NOT A GIT REPOSITORY!!!!");
+                return;
+            }
+
             var cmdLine = new Parameters(args);
             if (string.IsNullOrEmpty(GitHandler.FindGitBinary()))
             {
