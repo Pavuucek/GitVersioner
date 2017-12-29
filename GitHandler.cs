@@ -163,7 +163,7 @@ namespace GitVersioner
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...
             if (r.Branch == "HEAD")
-                r.Branch = ExecGit(workDir, "describe --all").Trim().Replace("heads/", string.Empty);
+                r.Branch = ExecGit(workDir, "describe --all").Trim();
             r.Branch = CleanBranchName(r.Branch);
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             Console.WriteLine("Version info: {0}", GitResultToString(r));
@@ -184,10 +184,13 @@ namespace GitVersioner
             s = s.Replace("remotes", string.Empty);
             s = s.Replace("remote", string.Empty);
             s = s.Replace("origin", string.Empty);
+            s = s.Replace("heads", string.Empty);
+            s = s.Replace("heads/", string.Empty);
             // get rid of all slashes
             while (s.Contains("//"))
                 s = s.Replace("//", "/");
             s = s.Replace("/", "-");
+            s = s.TrimStart('-');
             return s;
         }
 
