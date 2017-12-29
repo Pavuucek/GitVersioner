@@ -147,28 +147,18 @@ namespace GitVersioner
                 r.MajorVersion = s;
             }
 
-            r.Commit = part1[1];
+            // if commit parsing fails default to zero, we'll count commits later
+            r.Commit = part1.Length < 2 ? "0" : part1[1].Trim();
 
-            try
-            {
-                r.ShortHash = part1[2];
-            }
-            catch
-            {
-                r.ShortHash = lines;
-            }
+            // just shorthash is remaining. it's either part 2 of part1 or everything
+            r.ShortHash = part1.Length > 2 ? part1[2].Trim() : lines.Trim();
 
-            r.ShortHash = r.ShortHash.Trim();
             //
             // if no tags are present we'll get 0.0.0-0-abcdefg
             // we should at least get commit count
             if (r.MajorVersion.TryToInt32() == 0 && r.MinorVersion.TryToInt32() == 0 && r.Revision.TryToInt32() == 0 &&
                 r.Commit.TryToInt32() == 0)
-            {
-                var s = ExecGit(workDir, "rev-list --count HEAD").Trim();
-
-                r.Commit = s;
-            }
+                r.Commit = ExecGit(workDir, "rev-list --count HEAD").Trim();
 
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...
