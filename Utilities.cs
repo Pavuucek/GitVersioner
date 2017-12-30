@@ -80,10 +80,10 @@ namespace GitVersioner
         /// <returns></returns>
         public static string DoReplace(string inString, GitResult gr)
         {
-            var r = inString.Replace("$MajorVersion$", gr.MajorVersion.ToString(CultureInfo.InvariantCulture));
-            r = r.Replace("$MinorVersion$", gr.MinorVersion.ToString(CultureInfo.InvariantCulture));
-            r = r.Replace("$Revision$", gr.Revision.ToString(CultureInfo.InvariantCulture));
-            r = r.Replace("$Commit$", gr.Commit.ToString(CultureInfo.InvariantCulture));
+            var r = inString.Replace("$MajorVersion$", gr.MajorVersion);
+            r = r.Replace("$MinorVersion$", gr.MinorVersion);
+            r = r.Replace("$Revision$", gr.Revision);
+            r = r.Replace("$Commit$", gr.Commit);
             r = r.Replace("$ShortHash$", gr.ShortHash);
             r = r.Replace("$LongHash$", gr.LongHash);
             r = r.Replace("$Branch$", gr.Branch);
