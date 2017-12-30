@@ -30,6 +30,8 @@ namespace GitVersioner
     {
         public string Branch;
         public string Commit;
+        public string TotalCommits;
+        public string CommitsInCurrentBranch;
         public string LongHash;
         public string MajorVersion;
         public string MinorVersion;

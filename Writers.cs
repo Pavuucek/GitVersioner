@@ -156,6 +156,10 @@ namespace GitVersioner
             Notifiers.NotifyTeamCity();
         }
 
+
+        /// <summary>
+        ///     Automatically searches and replaces version info in net core projects
+        /// </summary>
         public static void AutoSearchAndReplaceProjects()
         {
             var projects = Utilities.SearchForFiles("*.csproj");

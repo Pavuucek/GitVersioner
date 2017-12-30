@@ -126,6 +126,8 @@ namespace GitVersioner
             r.MinorVersion = "0";
             r.Revision = "0";
             r.Commit = "0";
+            r.TotalCommits = "0";
+            r.CommitsInCurrentBranch = "0";
             r.ShortHash = "";
             // ocekavany retezec ve formatu: 1.7.6-235-g0a52e4b
             var part1 = lines.Split('-');
@@ -153,17 +155,21 @@ namespace GitVersioner
             // just shorthash is remaining. it's either part 2 of part1 or everything
             r.ShortHash = part1.Length > 2 ? part1[2].Trim() : lines.Trim();
 
+            // get total commits
+            r.TotalCommits = ExecGit(workDir, "rev-list --count --all").Trim();
             //
             // if no tags are present we'll get 0.0.0-0-abcdefg
-            // we should at least get commit count
+            // give total commit count at least
             if (r.MajorVersion.TryToInt32() == 0 && r.MinorVersion.TryToInt32() == 0 && r.Revision.TryToInt32() == 0 &&
                 r.Commit.TryToInt32() == 0)
-                r.Commit = ExecGit(workDir, "rev-list --count HEAD").Trim();
+                r.Commit = r.TotalCommits;
 
             r.Branch = ExecGit(workDir, "rev-parse --abbrev-ref HEAD").Trim();
             // we don't want branches to be called HEAD...
             if (r.Branch == "HEAD")
                 r.Branch = ExecGit(workDir, "describe --all").Trim();
+            // get commits in current branch before cleaning branch name
+            r.CommitsInCurrentBranch = ExecGit(workDir, $"rev-list --count {r.Branch}").Trim();
             r.Branch = CleanBranchName(r.Branch);
             r.LongHash = ExecGit(workDir, "rev-parse HEAD").Trim();
             Console.WriteLine("Version info: {0}", GitResultToString(r));
@@ -201,12 +207,7 @@ namespace GitVersioner
         /// <returns></returns>
         public static string GitResultToString(GitResult gr)
         {
-            var s = gr.MajorVersion + ".";
-            s += gr.MinorVersion + ".";
-            s += gr.Revision + "-";
-            s += gr.Commit + "-";
-            s += gr.ShortHash;
-            return s;
+            return $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}-{gr.Commit}-{gr.ShortHash}";
         }
 
         /// <summary>

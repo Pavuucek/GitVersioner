@@ -87,6 +87,8 @@ namespace GitVersioner
             r = r.Replace("$ShortHash$", gr.ShortHash);
             r = r.Replace("$LongHash$", gr.LongHash);
             r = r.Replace("$Branch$", gr.Branch);
+            r = r.Replace("$TotalCommits$", gr.TotalCommits);
+            r = r.Replace("$CommitsInCurrentBranch$", gr.CommitsInCurrentBranch);
             return r;
         }
 
@@ -123,11 +125,13 @@ or dotnet {exename} r Properties\\AssemblyInfo.cs
 ** = version (or v) parameter is optional
 for example {exename} --build-appveyor --version=$MajorVersion$.$MinorVersion$
 
-Supported replacement strings:
+Supported replacement strings (case sensitive):
 $MajorVersion$
 $MinorVersion$
 $Revision$
 $Commit$
+$TotalCommits$
+$CommitsInCurrentBranch$
 $ShortHash$
 $LongHash$
 $Branch$
