@@ -189,12 +189,12 @@ namespace GitVersioner
                     if (node1 == null)
                     {
                         var n1 = docnode.OwnerDocument.CreateNode(XmlNodeType.Element, node, null);
-                        n1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                        n1.InnerText = $"{gr.MajorVersion.TryToInt32()}.{gr.MinorVersion.TryToInt32()}.{gr.Revision.TryToInt32()}.{gr.Commit.TryToInt32()}";
                         docnode.AppendChild(n1);
                     }
                     else
                     {
-                        node1.InnerText = $"{gr.MajorVersion}.{gr.MinorVersion}.{gr.Revision}.{gr.Commit}";
+                        node1.InnerText = $"{gr.MajorVersion.TryToInt32()}.{gr.MinorVersion.TryToInt32()}.{gr.Revision.TryToInt32()}.{gr.Commit.TryToInt32()}";
                     }
                 }
 
